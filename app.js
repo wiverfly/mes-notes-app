@@ -244,16 +244,19 @@ function renderFolder(folder, depth) {
     actions.appendChild(makeActionBtn('◉', 'Couleur', () => openColorPicker(folder.id)));
     actions.appendChild(makeActionBtn('⊞', 'Étiquettes', () => openTagManager(folder.id, 'folder')));
     actions.appendChild(makeActionBtn('＋', 'Nouveau fichier', async () => {
-      const n = prompt('Nom du fichier :');
-      if (n?.trim()) {
-        await addDoc(collection(db, 'files'), {
-          name: n.trim(), folderId: folder.id,
-          content: '', tags: [],
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp(), size: 0
-        });
-      }
-    }));
+  const n = prompt('Nom du fichier :');
+  if (n?.trim()) {
+    // Affichage du message RGPD avant création
+    showRgpdModal(async () => {
+      await addDoc(collection(db, 'files'), {
+        name: n.trim(), folderId: folder.id,
+        content: '', tags: [],
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(), size: 0
+      });
+    });
+  }
+}));
     actions.appendChild(makeActionBtn('⊕', 'Sous-dossier', async () => {
       const n = prompt('Nom du sous-dossier :');
       if (n?.trim()) {
