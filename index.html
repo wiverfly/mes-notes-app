@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>📝 Notes App</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" 
+        href="https://cdnjs.cloudflare.com/ajax/libs/quill/1.3.7/quill.snow.min.css"/>
+</head>
+<body>
+
+  <!-- MODAL AVERTISSEMENT MODE ÉDITION -->
+  <div id="modal-overlay" class="modal-overlay hidden">
+    <div class="modal-box">
+      <div class="modal-icon">⚠️</div>
+      <h2>Passer en mode édition</h2>
+      <p>
+        Vous êtes sur le point d'activer le <strong>mode édition</strong>.<br><br>
+        Ce mode vous permet de <strong>créer, modifier et supprimer</strong>
+        des fichiers et dossiers.<br><br>
+        Merci de <strong>ne pas modifier le travail des autres utilisateurs</strong>
+        sans leur accord. Utilisez ce mode de manière responsable. 🙏
+      </p>
+      <div class="modal-actions">
+        <button id="modal-cancel" class="btn-cancel">Annuler</button>
+        <button id="modal-confirm" class="btn-confirm">Je comprends, continuer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL PROPRIÉTÉS FICHIER -->
+  <div id="props-overlay" class="modal-overlay hidden">
+    <div class="modal-box props-box">
+      <button id="props-close" class="props-close">✕</button>
+      <h3>📄 Propriétés du fichier</h3>
+      <table class="props-table">
+        <tbody>
+          <tr><td>Nom</td><td id="prop-name">-</td></tr>
+          <tr><td>Taille</td><td id="prop-size">-</td></tr>
+          <tr><td>Créé le</td><td id="prop-created">-</td></tr>
+          <tr><td>Modifié le</td><td id="prop-updated">-</td></tr>
+          <tr><td>Étiquettes</td><td id="prop-tags">-</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- MODAL COULEUR DOSSIER -->
+  <div id="color-overlay" class="modal-overlay hidden">
+    <div class="modal-box color-box">
+      <h3>🎨 Couleur du dossier</h3>
+      <div class="color-grid" id="color-grid"></div>
+      <div class="modal-actions">
+        <button id="color-cancel" class="btn-cancel">Annuler</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL TAGS -->
+  <div id="tag-overlay" class="modal-overlay hidden">
+    <div class="modal-box tag-box">
+      <h3>🏷️ Gérer les étiquettes</h3>
+      <div class="tag-input-row">
+        <input id="tag-input" type="text" placeholder="Nom de l'étiquette..." 
+               class="rename-input" maxlength="20"/>
+        <div class="tag-colors" id="tag-color-picker"></div>
+      </div>
+      <button id="tag-add-btn" class="btn-confirm" style="margin-top:10px">
+        Ajouter
+      </button>
+      <div id="tag-list" class="tag-list"></div>
+      <div class="modal-actions">
+        <button id="tag-cancel" class="btn-cancel">Fermer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- APP PRINCIPALE -->
+  <div class="app-container">
+
+    <!-- TOPBAR -->
+    <div class="topbar">
+      <div class="topbar-left">
+        <span class="app-title">📝 Notes App</span>
+      </div>
+      <div class="topbar-center">
+        <button id="mode-btn" class="mode-btn read-active">
+          👁️ Mode Lecture
+        </button>
+      </div>
+      <div class="topbar-right"></div>
+    </div>
+
+    <!-- BODY -->
+    <div class="app-body">
+
+      <!-- SIDEBAR -->
+      <aside class="sidebar">
+        <div class="sidebar-header">
+          <span class="sidebar-title">Mes dossiers</span>
+          <button id="add-root-folder" class="add-folder-btn hidden" title="Nouveau dossier">
+            ➕
+          </button>
+        </div>
+        <div class="sidebar-content" id="sidebar-content">
+          <div class="empty-sidebar" id="empty-sidebar">
+            📂 Aucun dossier disponible
+          </div>
+        </div>
+      </aside>
+
+      <!-- CONTENU PRINCIPAL -->
+      <main class="main-content">
+        <div class="empty-state" id="empty-state">
+          <div class="empty-icon">📝</div>
+          <h2>Sélectionnez une note</h2>
+          <p>Choisissez un fichier dans le panneau de gauche</p>
+        </div>
+        <div class="editor-wrapper hidden" id="editor-wrapper">
+          <div class="editor-header">
+            <h2 id="editor-title">Sans titre</h2>
+            <span id="read-only-badge" class="read-only-badge">👁️ Lecture seule</span>
+            <div id="file-tag-badges" class="file-tag-badges"></div>
+          </div>
+          <div id="editor"></div>
+        </div>
+      </main>
+
+    </div>
+  </div>
+
+  <!-- FIREBASE SDK -->
+  <script type="module" src="app.js"></script>
+  <!-- QUILL EDITOR -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/quill/1.3.7/quill.min.js"></script>
+
+</body>
+</html>
