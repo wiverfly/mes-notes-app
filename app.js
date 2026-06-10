@@ -561,3 +561,21 @@ function formatDate(ts) {
   const d = ts.toDate ? ts.toDate() : new Date(ts);
   return d.toLocaleString('fr-FR');
 }
+// ===== MODAL RGPD =====
+let rgpdCallback = null;
+
+function showRgpdModal(callback) {
+  rgpdCallback = callback;
+  document.getElementById('rgpd-overlay').classList.remove('hidden');
+}
+
+document.getElementById('rgpd-cancel').addEventListener('click', () => {
+  document.getElementById('rgpd-overlay').classList.add('hidden');
+  rgpdCallback = null;
+});
+
+document.getElementById('rgpd-confirm').addEventListener('click', async () => {
+  document.getElementById('rgpd-overlay').classList.add('hidden');
+  if (rgpdCallback) await rgpdCallback();
+  rgpdCallback = null;
+});
