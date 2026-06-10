@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Notes App</title>
   <link rel="stylesheet" href="style.css" />
-  <link rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/quill/1.3.7/quill.snow.min.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/quill/1.3.7/quill.snow.min.css"/>
 </head>
+
 <!-- MODAL RGPD -->
 <div id="rgpd-overlay" class="modal-overlay hidden">
   <div class="modal-box rgpd-box">
@@ -21,15 +21,13 @@
       la nature des données que vous y stockez.<br><br>
       Les serveurs sont localisés en <strong>Europe (Frankfurt)</strong>
       mais le service reste soumis aux conditions de Google.<br><br>
-      En continuant, vous acceptez que vos données soient
-      stockées sur cette infrastructure.
+      En continuant, vous acceptez que vos données soient stockées sur cette infrastructure.
     </p>
     <div class="rgpd-info">
       <span>🌍 Hébergement : Firebase / Google</span>
       <span>📍 Région : europe-west3 (Frankfurt)</span>
       <span>📋 En savoir plus :
-        <a href="https://firebase.google.com/support/privacy"
-           target="_blank">firebase.google.com/support/privacy</a>
+        <a href="https://firebase.google.com/support/privacy" target="_blank">firebase.google.com/support/privacy</a>
       </span>
     </div>
     <div class="modal-actions">
@@ -38,9 +36,10 @@
     </div>
   </div>
 </div>
+
 <body>
 
-  <!-- MODAL AVERTISSEMENT -->
+  <!-- MODAL AVERTISSEMENT MODE EDITION -->
   <div id="modal-overlay" class="modal-overlay hidden">
     <div class="modal-box">
       <div class="modal-icon">⚠️</div>
@@ -92,16 +91,43 @@
     <div class="modal-box tag-box">
       <h3>Gérer les étiquettes</h3>
       <div class="tag-input-row">
-        <input id="tag-input" type="text" placeholder="Nom de l'étiquette..."
-               class="rename-input" maxlength="20"/>
+        <input id="tag-input" type="text" placeholder="Nom de l'étiquette..." class="rename-input" maxlength="20"/>
         <div class="tag-colors" id="tag-color-picker"></div>
       </div>
-      <button id="tag-add-btn" class="btn-confirm" style="margin-top:10px">
-        Ajouter
-      </button>
+      <button id="tag-add-btn" class="btn-confirm" style="margin-top:10px">Ajouter</button>
       <div id="tag-list" class="tag-list"></div>
       <div class="modal-actions">
         <button id="tag-cancel" class="btn-cancel">Fermer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DÉPLACER/COPIER -->
+  <div id="move-overlay" class="modal-overlay hidden">
+    <div class="modal-box move-box">
+      <button id="move-close" class="props-close">✕</button>
+      <h3 id="move-title">Déplacer vers...</h3>
+      <div id="move-tree" class="move-tree"></div>
+      <div class="modal-actions">
+        <button id="move-cancel" class="btn-cancel">Annuler</button>
+        <button id="move-copy-btn" class="btn-cancel">Copier ici</button>
+        <button id="move-confirm" class="btn-confirm">Déplacer ici</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL VISIONNEUSE IMAGE -->
+  <div id="image-viewer-overlay" class="modal-overlay hidden" id="image-viewer-overlay">
+    <div class="image-viewer-box">
+      <button id="image-viewer-close" class="image-viewer-close">✕</button>
+      <div class="image-viewer-controls">
+        <button id="zoom-out" class="viewer-btn">−</button>
+        <span id="zoom-level">100%</span>
+        <button id="zoom-in" class="viewer-btn">+</button>
+        <button id="zoom-reset" class="viewer-btn">↺</button>
+      </div>
+      <div class="image-viewer-canvas" id="image-viewer-canvas">
+        <img id="image-viewer-img" src="" alt=""/>
       </div>
     </div>
   </div>
@@ -112,52 +138,41 @@
     <!-- TOPBAR -->
     <div class="topbar">
       <div class="topbar-left">
-        <span class="app-title">Notes App</span>
+        <span class="app-title">NOTES APP</span>
       </div>
-      <div class="topbar-center">
-        <button id="mode-btn" class="mode-btn read-active">
-          Mode Lecture
-        </button>
+      <div class="topbar-center" id="topbar-center">
+        <!-- Boutons injectés dynamiquement selon le contexte -->
       </div>
       <div class="topbar-right">
-        <!-- SÉLECTEUR DE THÈME -->
         <div class="theme-selector">
-          <button class="theme-btn active" data-theme="violet" title="Violet">
-            <span class="theme-dot" style="background:#6366f1"></span>
-          </button>
-          <button class="theme-btn" data-theme="pastel" title="Pastel">
-            <span class="theme-dot" style="background:#a78bfa"></span>
-          </button>
-          <button class="theme-btn" data-theme="grey" title="Gris">
-            <span class="theme-dot" style="background:#94a3b8"></span>
-          </button>
-          <button class="theme-btn" data-theme="dark" title="Sombre">
-            <span class="theme-dot" style="background:#334155"></span>
-          </button>
+          <button class="theme-btn active" data-theme="violet" title="Violet"><span class="theme-dot" style="background:#6366f1"></span></button>
+          <button class="theme-btn" data-theme="pastel" title="Pastel"><span class="theme-dot" style="background:#a78bfa"></span></button>
+          <button class="theme-btn" data-theme="grey" title="Gris"><span class="theme-dot" style="background:#94a3b8"></span></button>
+          <button class="theme-btn" data-theme="dark" title="Sombre"><span class="theme-dot" style="background:#334155"></span></button>
         </div>
-        <!-- TOGGLE DASHBOARD -->
-        <label class="dashboard-toggle" title="Mode Dashboard">
-          <input type="checkbox" id="dashboard-toggle"/>
-          <span class="toggle-label">Dashboard</span>
-        </label>
       </div>
     </div>
 
-    <!-- BODY -->
-    <div class="app-body" id="app-body">
+    <!-- VUE MODULES (page d'accueil) -->
+    <div class="modules-view" id="modules-view">
+      <div class="modules-header">
+        <h2>ESPACES DE TRAVAIL</h2>
+        <button id="add-module-btn" class="add-folder-btn hidden" title="Nouveau module">+</button>
+      </div>
+      <div class="modules-grid" id="modules-grid"></div>
+    </div>
+
+    <!-- APP BODY (sidebar + editor) — caché jusqu'à choix d'un module -->
+    <div class="app-body hidden" id="app-body">
 
       <!-- SIDEBAR -->
       <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
           <span class="sidebar-title">Mes dossiers</span>
-          <button id="add-root-folder" class="add-folder-btn hidden" title="Nouveau dossier">
-            +
-          </button>
+          <button id="add-root-folder" class="add-folder-btn hidden" title="Nouveau dossier">+</button>
         </div>
         <div class="sidebar-content" id="sidebar-content">
-          <div class="empty-sidebar" id="empty-sidebar">
-            Aucun dossier disponible
-          </div>
+          <div class="empty-sidebar" id="empty-sidebar">Aucun dossier disponible</div>
         </div>
       </aside>
 
@@ -174,7 +189,26 @@
             <span id="read-only-badge" class="read-only-badge">Lecture seule</span>
             <div id="file-tag-badges" class="file-tag-badges"></div>
           </div>
-          <div id="editor"></div>
+          <div class="editor-and-images">
+            <div id="editor"></div>
+            <!-- PANNEAU IMAGES -->
+            <div class="images-panel" id="images-panel">
+              <button class="images-panel-toggle" id="images-panel-toggle" title="Ouvrir/fermer le panneau images">
+                <span id="images-toggle-arrow">◀</span>
+              </button>
+              <div class="images-panel-inner" id="images-panel-inner">
+                <div class="images-panel-header">
+                  <span>Images</span>
+                  <span id="images-count" class="images-count">0/5</span>
+                </div>
+                <label class="images-upload-btn" id="images-upload-label">
+                  <input type="file" id="images-upload-input" accept="image/*" multiple style="display:none"/>
+                  + Ajouter
+                </label>
+                <div class="images-grid" id="images-grid"></div>
+              </div>
+            </div>
+          </div>
         </div>
       </main>
 
@@ -182,9 +216,7 @@
       <div class="dashboard-view hidden" id="dashboard-view">
         <div class="dashboard-header">
           <h2>Tableau de bord</h2>
-          <button id="dashboard-add-folder" class="add-folder-btn hidden">
-            + Nouveau dossier
-          </button>
+          <button id="dashboard-add-folder" class="add-folder-btn hidden">+ Nouveau dossier</button>
         </div>
         <div class="dashboard-grid" id="dashboard-grid"></div>
       </div>
@@ -196,3 +228,5 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/quill/1.3.7/quill.min.js"></script>
 </body>
 </html>
+HTMLEOF
+echo "index.html written"
