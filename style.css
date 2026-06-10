@@ -690,3 +690,27 @@ html, body {
   cursor: pointer; font-size: 0.72rem;
 }
 .tag-item button:hover { color: white; }
+/* ===== MODAL RGPD ===== */
+.rgpd-box { max-width: 500px; }
+
+.rgpd-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 18px;
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  text-align: left;
+  font-size: 0.8rem;
+  color: var(--text-soft);
+}
+
+.rgpd-info a {
+  color: var(--accent);
+  text-decoration: none;
+}
+.rgpd-info a:hover {
+  text-decoration: underline;
+}
