@@ -9,12 +9,12 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "VOTRE_API_KEY",
-  authDomain: "VOTRE_AUTH_DOMAIN",
-  projectId: "VOTRE_PROJECT_ID",
-  storageBucket: "VOTRE_STORAGE_BUCKET",
-  messagingSenderId: "VOTRE_MESSAGING_SENDER_ID",
-  appId: "VOTRE_APP_ID"
+  apiKey: "AIzaSyByGzXhK9ub9ThcacauTm7ROYP1fBpE1l0",
+  authDomain: "mes-notes-app-8618f.firebaseapp.com",
+  projectId: "mes-notes-app-8618f",
+  storageBucket: "mes-notes-app-8618f.firebasestorage.app",
+  messagingSenderId: "513439703452",
+  appId: "1:513439703452:web:8aa63f2195c3d7942fa859"
 };
 
 const app = initializeApp(firebaseConfig);
