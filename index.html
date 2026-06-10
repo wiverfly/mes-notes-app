@@ -8,6 +8,36 @@
   <link rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/quill/1.3.7/quill.snow.min.css"/>
 </head>
+<!-- MODAL RGPD -->
+<div id="rgpd-overlay" class="modal-overlay hidden">
+  <div class="modal-box rgpd-box">
+    <div class="modal-icon">🔒</div>
+    <h2>Information RGPD</h2>
+    <p>
+      Le contenu de ce fichier sera <strong>hébergé sur Firebase</strong>,
+      un service cloud fourni par <strong>Google (USA)</strong>.<br><br>
+      ⚠️ Dans un cadre <strong>professionnel ou sensible</strong>,
+      cela peut ne pas être conforme à la <strong>RGPD</strong> selon
+      la nature des données que vous y stockez.<br><br>
+      Les serveurs sont localisés en <strong>Europe (Frankfurt)</strong>
+      mais le service reste soumis aux conditions de Google.<br><br>
+      En continuant, vous acceptez que vos données soient
+      stockées sur cette infrastructure.
+    </p>
+    <div class="rgpd-info">
+      <span>🌍 Hébergement : Firebase / Google</span>
+      <span>📍 Région : europe-west3 (Frankfurt)</span>
+      <span>📋 En savoir plus :
+        <a href="https://firebase.google.com/support/privacy"
+           target="_blank">firebase.google.com/support/privacy</a>
+      </span>
+    </div>
+    <div class="modal-actions">
+      <button id="rgpd-cancel" class="btn-cancel">Annuler</button>
+      <button id="rgpd-confirm" class="btn-confirm">J'ai compris, continuer</button>
+    </div>
+  </div>
+</div>
 <body>
 
   <!-- MODAL AVERTISSEMENT -->
