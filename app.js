@@ -579,3 +579,255 @@ document.getElementById('rgpd-confirm').addEventListener('click', async () => {
   if (rgpdCallback) await rgpdCallback();
   rgpdCallback = null;
 });
+// ===== PANNEAU IMAGES =====
+
+let currentImages = []; // [{id, base64, name}]
+let dragSrcIndex = null;
+
+// --- Toggle panneau ---
+document.getElementById('image-panel-toggle').addEventListener('click', () => {
+  const panel = document.getElementById('image-panel');
+  const arrow = document.getElementById('panel-arrow');
+  const isCollapsed = panel.classList.toggle('collapsed');
+  arrow.textContent = isCollapsed ? '◀' : '▶';
+});
+
+// --- Import image ---
+document.getElementById('image-upload-input').addEventListener('change', async (e) => {
+  const files = Array.from(e.target.files);
+  const remaining = 5 - currentImages.length;
+
+  if (remaining <= 0) {
+    alert('Limite de 5 images atteinte pour ce fichier.');
+    e.target.value = '';
+    return;
+  }
+
+  const toAdd = files.slice(0, remaining);
+  if (files.length > remaining) {
+    alert(`Seulement ${remaining} image(s) ajoutée(s) (limite : 5).`);
+  }
+
+  for (const file of toAdd) {
+    if (file.size > 500 * 1024) {
+      alert(`"${file.name}" dépasse 500 Ko et a été ignorée.`);
+      continue;
+    }
+    const base64 = await fileToBase64(file);
+    currentImages.push({ id: Date.now() + Math.random(), base64, name: file.name });
+  }
+
+  e.target.value = '';
+  renderImagePanel();
+  saveImages();
+});
+
+function fileToBase64(file) {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = (e) => resolve(e.target.result);
+    reader.readAsDataURL(file);
+  });
+}
+
+// --- Rendu de la liste ---
+function renderImagePanel() {
+  const list = document.getElementById('image-list');
+  const badge = document.getElementById('image-count-badge');
+  const uploadLabel = document.getElementById('image-upload-label');
+
+  list.innerHTML = '';
+  badge.textContent = `${currentImages.length} / 5`;
+
+  // Désactiver l'import si limite atteinte
+  if (currentImages.length >= 5) {
+    uploadLabel.classList.add('disabled');
+  } else {
+    uploadLabel.classList.remove('disabled');
+  }
+
+  currentImages.forEach((img, index) => {
+    const item = document.createElement('div');
+    item.className = 'image-item';
+    item.draggable = true;
+    item.dataset.index = index;
+
+    item.innerHTML = `
+      <span class="drag-handle">⠿⠿</span>
+      <span class="image-number">${index + 1}</span>
+      <img src="${img.base64}" alt="${img.name}" />
+      <div class="image-item-overlay">
+        <button class="img-btn-view" title="Agrandir">🔍</button>
+        <button class="img-btn-delete" title="Supprimer">🗑</button>
+      </div>
+    `;
+
+    // --- Drag & Drop ---
+    item.addEventListener('dragstart', (e) => {
+      dragSrcIndex = index;
+      item.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+    });
+
+    item.addEventListener('dragend', () => {
+      item.classList.remove('dragging');
+      document.querySelectorAll('.image-item').forEach(el => el.classList.remove('drag-over'));
+    });
+
+    item.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      document.querySelectorAll('.image-item').forEach(el => el.classList.remove('drag-over'));
+      item.classList.add('drag-over');
+    });
+
+    item.addEventListener('drop', (e) => {
+      e.preventDefault();
+      if (dragSrcIndex === null || dragSrcIndex === index) return;
+      const moved = currentImages.splice(dragSrcIndex, 1)[0];
+      currentImages.splice(index, 0, moved);
+      dragSrcIndex = null;
+      renderImagePanel();
+      saveImages();
+    });
+
+    // --- Voir en grand ---
+    item.querySelector('.img-btn-view').addEventListener('click', (e) => {
+      e.stopPropagation();
+      openLightbox(img.base64);
+    });
+
+    // --- Supprimer ---
+    item.querySelector('.img-btn-delete').addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (confirm(`Supprimer l'image "${img.name}" ?`)) {
+        currentImages.splice(index, 1);
+        renderImagePanel();
+        saveImages();
+      }
+    });
+
+    // --- Clic direct sur image → lightbox ---
+    item.addEventListener('click', (e) => {
+      if (e.target.closest('.image-item-overlay')) return;
+      openLightbox(img.base64);
+    });
+
+    list.appendChild(item);
+  });
+}
+
+// --- Sauvegarde dans Firestore ---
+async function saveImages() {
+  if (!selectedFileId) return;
+  await updateDoc(doc(db, 'files', selectedFileId), {
+    images: currentImages.map(i => ({ id: i.id, base64: i.base64, name: i.name }))
+  });
+}
+
+// --- Chargement au clic sur fichier (modifier openFile) ---
+// Dans votre fonction openFile existante, ajoutez à la fin :
+//
+//   currentImages = (file.images || []);
+//   renderImagePanel();
+//
+// Exemple de remplacement complet de openFile :
+
+function openFile(file) {
+  selectedFileId = file.id;
+  document.getElementById('empty-state').classList.add('hidden');
+  document.getElementById('editor-wrapper').classList.remove('hidden');
+  updateEditorHeader(file);
+  if (!quill) initQuill();
+  quill.root.innerHTML = file.content || '';
+  quill.enable(isEditMode);
+
+  // ↓ Chargement des images
+  currentImages = (file.images || []);
+  renderImagePanel();
+
+  renderSidebar();
+}
+
+// ===== LIGHTBOX =====
+
+let zoomLevel = 1;
+let isDraggingLightbox = false;
+let lightboxStartX = 0, lightboxStartY = 0;
+let lightboxTranslateX = 0, lightboxTranslateY = 0;
+
+function openLightbox(src) {
+  zoomLevel = 1;
+  lightboxTranslateX = 0;
+  lightboxTranslateY = 0;
+  const img = document.getElementById('lightbox-img');
+  const wrapper = document.getElementById('lightbox-img-wrapper');
+  img.src = src;
+  updateLightboxZoom();
+  wrapper.classList.remove('zoomed');
+  document.getElementById('lightbox-overlay').classList.remove('hidden');
+}
+
+function updateLightboxZoom() {
+  const img = document.getElementById('lightbox-img');
+  const wrapper = document.getElementById('lightbox-img-wrapper');
+  img.style.transform = `translate(${lightboxTranslateX}px, ${lightboxTranslateY}px) scale(${zoomLevel})`;
+  document.getElementById('zoom-level').textContent = `${Math.round(zoomLevel * 100)}%`;
+  wrapper.classList.toggle('zoomed', zoomLevel > 1);
+}
+
+document.getElementById('zoom-in').addEventListener('click', () => {
+  zoomLevel = Math.min(zoomLevel + 0.25, 4);
+  updateLightboxZoom();
+});
+
+document.getElementById('zoom-out').addEventListener('click', () => {
+  zoomLevel = Math.max(zoomLevel - 0.25, 0.25);
+  if (zoomLevel <= 1) { lightboxTranslateX = 0; lightboxTranslateY = 0; }
+  updateLightboxZoom();
+});
+
+document.getElementById('zoom-reset').addEventListener('click', () => {
+  zoomLevel = 1;
+  lightboxTranslateX = 0;
+  lightboxTranslateY = 0;
+  updateLightboxZoom();
+});
+
+document.getElementById('lightbox-close').addEventListener('click', () => {
+  document.getElementById('lightbox-overlay').classList.add('hidden');
+});
+
+// Zoom molette
+document.getElementById('lightbox-img-wrapper').addEventListener('wheel', (e) => {
+  e.preventDefault();
+  const delta = e.deltaY > 0 ? -0.15 : 0.15;
+  zoomLevel = Math.min(Math.max(zoomLevel + delta, 0.25), 4);
+  if (zoomLevel <= 1) { lightboxTranslateX = 0; lightboxTranslateY = 0; }
+  updateLightboxZoom();
+}, { passive: false });
+
+// Glissement image zoomée
+const wrapper = document.getElementById('lightbox-img-wrapper');
+wrapper.addEventListener('mousedown', (e) => {
+  if (zoomLevel <= 1) return;
+  isDraggingLightbox = true;
+  lightboxStartX = e.clientX - lightboxTranslateX;
+  lightboxStartY = e.clientY - lightboxTranslateY;
+});
+
+window.addEventListener('mousemove', (e) => {
+  if (!isDraggingLightbox) return;
+  lightboxTranslateX = e.clientX - lightboxStartX;
+  lightboxTranslateY = e.clientY - lightboxStartY;
+  updateLightboxZoom();
+});
+
+window.addEventListener('mouseup', () => { isDraggingLightbox = false; });
+
+// Fermer lightbox en cliquant en dehors
+document.getElementById('lightbox-overlay').addEventListener('click', (e) => {
+  if (e.target === document.getElementById('lightbox-overlay')) {
+    document.getElementById('lightbox-overlay').classList.add('hidden');
+  }
+});
