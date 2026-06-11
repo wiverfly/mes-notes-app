@@ -15,18 +15,14 @@
     <div class="modal-box rgpd-box">
       <div class="modal-icon">🔒</div>
       <h2>Information RGPD</h2>
-      <p>Le contenu de ce fichier sera hébergé sur <strong>Firebase</strong>,
-        un service cloud fourni par Google (USA).</p>
-      <p style="margin-top:10px">⚠️ Dans un cadre professionnel ou sensible,
-        cela peut ne pas être conforme à la RGPD selon la nature des données.</p>
+      <p>Le contenu de ce fichier sera hébergé sur <strong>Firebase</strong>, un service cloud fourni par Google (USA).</p>
+      <p style="margin-top:10px">⚠️ Dans un cadre professionnel ou sensible, cela peut ne pas être conforme à la RGPD.</p>
       <div class="rgpd-info">
         <span>Les serveurs sont localisés en Europe (Frankfurt) mais le service reste soumis aux conditions de Google.</span>
         <span>En continuant, vous acceptez que vos données soient stockées sur cette infrastructure.</span>
         <span>🌍 Hébergement : Firebase / Google</span>
         <span>📍 Région : europe-west3 (Frankfurt)</span>
-        <span>📋 En savoir plus :
-          <a href="https://firebase.google.com/support/privacy" target="_blank">firebase.google.com/support/privacy</a>
-        </span>
+        <span>📋 En savoir plus : <a href="https://firebase.google.com/support/privacy" target="_blank">firebase.google.com/support/privacy</a></span>
       </div>
       <div class="modal-actions">
         <button id="rgpd-cancel" class="btn-cancel">Annuler</button>
@@ -65,10 +61,10 @@
     </div>
   </div>
 
-  <!-- ===== MODAL COULEUR DOSSIER ===== -->
+  <!-- ===== MODAL COULEUR ===== -->
   <div id="color-overlay" class="modal-overlay hidden">
     <div class="modal-box color-box">
-      <h3>Couleur du dossier</h3>
+      <h3>Couleur</h3>
       <div id="color-grid" class="color-grid"></div>
       <div class="modal-actions">
         <button id="color-cancel" class="btn-cancel">Annuler</button>
@@ -96,6 +92,26 @@
     </div>
   </div>
 
+  <!-- ===== MODAL IMAGE MODULE ===== -->
+  <div id="module-img-overlay" class="modal-overlay hidden">
+    <div class="modal-box" style="max-width:420px">
+      <h3>Image de fond du module</h3>
+      <p style="margin-bottom:16px">Choisissez une image (max 1 Mo) qui servira de fond à la carte du module.</p>
+      <label class="image-upload-label" style="display:flex;align-items:center;justify-content:center;padding:14px;border:1px dashed var(--glass-border);border-radius:var(--radius-sm);cursor:pointer;background:var(--glass)">
+        <span>＋ Choisir une image</span>
+        <input type="file" id="module-img-input" accept="image/*" style="display:none"/>
+      </label>
+      <div id="module-img-preview" style="margin-top:12px;display:none">
+        <img id="module-img-preview-img" style="width:100%;height:120px;object-fit:cover;border-radius:var(--radius-sm);border:1px solid var(--glass-border)"/>
+      </div>
+      <div class="modal-actions">
+        <button id="module-img-cancel" class="btn-cancel">Annuler</button>
+        <button id="module-img-remove" class="btn-cancel" style="color:#ef4444">Supprimer</button>
+        <button id="module-img-confirm" class="btn-confirm">Valider</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ===== LIGHTBOX ===== -->
   <div id="lightbox-overlay" class="modal-overlay hidden">
     <div class="lightbox-box">
@@ -112,22 +128,45 @@
     </div>
   </div>
 
-  <!-- ===== APPLICATION ===== -->
-  <div class="app-container">
+  <!-- ===== ÉCRAN MODULES (page d'accueil) ===== -->
+  <div id="modules-screen" class="modules-screen">
+    <!-- Titre animé -->
+    <div class="modules-topbar">
+      <h1 class="app-title-anim" id="app-title-anim">NOTES APP</h1>
+      <div class="modules-topbar-right">
+        <button id="modules-mode-btn" class="mode-btn read-active">Mode Lecture</button>
+        <button id="modules-add-btn" class="mode-btn dashboard-inactive hidden">+ Nouveau module</button>
+        <div class="theme-selector">
+          <button class="theme-btn active" data-theme="violet" title="Violet">
+            <span class="theme-dot" style="background:linear-gradient(135deg,#6366f1,#8b5cf6)"></span>
+          </button>
+          <button class="theme-btn" data-theme="pastel" title="Pastel">
+            <span class="theme-dot" style="background:linear-gradient(135deg,#a78bfa,#f9a8d4)"></span>
+          </button>
+          <button class="theme-btn" data-theme="grey" title="Gris">
+            <span class="theme-dot" style="background:linear-gradient(135deg,#64748b,#94a3b8)"></span>
+          </button>
+          <button class="theme-btn" data-theme="dark" title="Sombre">
+            <span class="theme-dot" style="background:linear-gradient(135deg,#1e293b,#0f172a)"></span>
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="modules-grid" id="modules-grid"></div>
+  </div>
 
-    <!-- TOPBAR -->
+  <!-- ===== APPLICATION PRINCIPALE ===== -->
+  <div id="app-container" class="app-container hidden">
+
     <header class="topbar">
       <div class="topbar-left">
-        <!-- ✅ Pas d'icône, titre en majuscules -->
-        <span class="app-title">NOTES APP</span>
+        <button id="back-to-modules" class="back-btn" title="Retour aux modules">← <span id="current-module-name">Modules</span></button>
       </div>
       <div class="topbar-center">
         <button id="mode-btn" class="mode-btn read-active">Mode Lecture</button>
       </div>
       <div class="topbar-right">
-        <!-- ✅ Bouton Dashboard style mode-btn -->
         <button id="dashboard-btn" class="mode-btn dashboard-inactive">Dashboard</button>
-        <!-- Sélecteur de thèmes -->
         <div class="theme-selector">
           <button class="theme-btn active" data-theme="violet" title="Violet">
             <span class="theme-dot" style="background:linear-gradient(135deg,#6366f1,#8b5cf6)"></span>
@@ -145,10 +184,8 @@
       </div>
     </header>
 
-    <!-- BODY -->
     <div class="app-body">
 
-      <!-- SIDEBAR -->
       <aside id="sidebar" class="sidebar">
         <div class="sidebar-header">
           <span>Mes dossiers</span>
@@ -159,44 +196,29 @@
         </div>
       </aside>
 
-      <!-- MAIN -->
       <main id="main-content" class="main-content">
-
-        <!-- EMPTY STATE -->
         <div id="empty-state" class="empty-state">
           <span class="empty-icon">📝</span>
           <h2>Sélectionnez une note</h2>
           <p>Choisissez un fichier dans le panneau de gauche</p>
         </div>
-
-        <!-- EDITOR WRAPPER -->
         <div id="editor-wrapper" class="editor-wrapper hidden">
-
-          <!-- EN-TÊTE -->
           <div class="editor-header">
             <h2 id="editor-title">Sans titre</h2>
             <span id="read-only-badge" class="read-only-badge">Lecture seule</span>
             <div id="file-tag-badges" class="file-tag-badges"></div>
           </div>
-
-          <!-- ZONE ÉDITEUR + PANNEAU IMAGE -->
           <div id="editor-area" class="editor-area">
-
-            <!-- ÉDITEUR QUILL -->
             <div id="editor"></div>
-
-            <!-- PANNEAU IMAGE -->
             <div id="image-panel" class="image-panel collapsed">
               <button id="image-panel-toggle" class="image-panel-toggle" title="Afficher/Masquer le panneau images">
                 <span id="panel-arrow">◀</span>
               </button>
               <div class="image-panel-content">
                 <div class="image-panel-header">
-                  <!-- ✅ Pas d'icône devant IMAGES -->
                   <span class="image-panel-title">IMAGES</span>
                   <span id="image-count-badge" class="image-count-badge">0 / 5</span>
                 </div>
-                <!-- ✅ Bouton import caché en mode lecture via JS -->
                 <label id="image-upload-label" class="image-upload-label hidden" for="image-upload-input">
                   <span>＋ Ajouter une image</span>
                   <input type="file" id="image-upload-input" accept="image/*" multiple style="display:none"/>
@@ -205,22 +227,23 @@
                 <div id="image-list" class="image-list"></div>
               </div>
             </div>
-
-          </div><!-- fin editor-area -->
-        </div><!-- fin editor-wrapper -->
+          </div>
+        </div>
       </main>
 
-      <!-- DASHBOARD -->
       <div id="dashboard-view" class="dashboard-view hidden">
         <div class="dashboard-header">
           <h2>Tableau de bord</h2>
-          <button id="dashboard-add-folder" class="add-folder-btn hidden">+ Nouveau dossier</button>
+          <!-- ✅ FIX alignement bouton + -->
+          <button id="dashboard-add-folder" class="add-folder-btn-dashboard hidden">
+            <span>+</span> Nouveau dossier
+          </button>
         </div>
         <div id="dashboard-grid" class="dashboard-grid"></div>
       </div>
 
-    </div><!-- fin app-body -->
-  </div><!-- fin app-container -->
+    </div>
+  </div>
 
   <script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
   <script type="module" src="app.js"></script>
