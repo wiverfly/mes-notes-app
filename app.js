@@ -28,24 +28,24 @@ const TAG_COLORS = [
 ];
 
 // ===== STATE =====
-let isEditMode = false;
-let folders = [];
-let files = [];
-let selectedFileId = null;
-let quill = null;
-let saveTimer = null;
+let isEditMode    = false;
+let isDashboard   = false;
+let folders       = [];
+let files         = [];
+let selectedFileId   = null;
+let quill            = null;
+let saveTimer        = null;
 let currentTagTarget = null;
 let currentTagTargetType = null;
 let selectedTagColor = TAG_COLORS[0];
-let colorTargetId = null;
-let isDashboard = false;
+let colorTargetId    = null;
 
 // ===== STATE IMAGES =====
 let currentImages = [];
-let dragSrcIndex = null;
+let dragSrcIndex  = null;
 
 // ===== STATE LIGHTBOX =====
-let zoomLevel = 1;
+let zoomLevel          = 1;
 let isDraggingLightbox = false;
 let lightboxStartX = 0, lightboxStartY = 0;
 let lightboxTranslateX = 0, lightboxTranslateY = 0;
@@ -118,48 +118,47 @@ document.getElementById('modal-confirm').addEventListener('click', () => {
 
 function setEditMode(value) {
   isEditMode = value;
-  const btn = document.getElementById('mode-btn');
-  const badge = document.getElementById('read-only-badge');
-  const addBtn = document.getElementById('add-root-folder');
+  const btn       = document.getElementById('mode-btn');
+  const badge     = document.getElementById('read-only-badge');
+  const addBtn    = document.getElementById('add-root-folder');
   const dashAddBtn = document.getElementById('dashboard-add-folder');
 
   btn.textContent = value ? 'Mode Édition' : 'Mode Lecture';
-  btn.className = `mode-btn ${value ? 'edit-active' : 'read-active'}`;
+  btn.className   = `mode-btn ${value ? 'edit-active' : 'read-active'}`;
   badge?.classList.toggle('hidden', value);
   addBtn.classList.toggle('hidden', !value);
   dashAddBtn.classList.toggle('hidden', !value);
 
-  // Activer/désactiver l'import d'images selon le mode
+  // ✅ Bouton image : visible uniquement en mode édition
   const uploadLabel = document.getElementById('image-upload-label');
-  if (uploadLabel) {
-    if (value) {
-      uploadLabel.classList.remove('disabled');
-    } else {
-      uploadLabel.classList.add('disabled');
-    }
-  }
+  const uploadHint  = document.getElementById('image-upload-hint');
+  if (uploadLabel) uploadLabel.classList.toggle('hidden', !value);
+  if (uploadHint)  uploadHint.classList.toggle('hidden', !value);
 
   if (quill) quill.enable(value);
   renderSidebar();
   if (isDashboard) renderDashboard();
 }
 
-// ===== DASHBOARD TOGGLE =====
-document.getElementById('dashboard-toggle').addEventListener('change', (e) => {
-  isDashboard = e.target.checked;
-  const sidebar = document.getElementById('sidebar');
+// ===== ✅ DASHBOARD TOGGLE (bouton style mode-btn) =====
+document.getElementById('dashboard-btn').addEventListener('click', () => {
+  isDashboard = !isDashboard;
+  const btn         = document.getElementById('dashboard-btn');
+  const sidebar     = document.getElementById('sidebar');
   const mainContent = document.getElementById('main-content');
-  const dashboardView = document.getElementById('dashboard-view');
+  const dashView    = document.getElementById('dashboard-view');
+
+  btn.className = `mode-btn ${isDashboard ? 'dashboard-active' : 'dashboard-inactive'}`;
 
   if (isDashboard) {
     sidebar.classList.add('hidden');
     mainContent.classList.add('hidden');
-    dashboardView.classList.remove('hidden');
+    dashView.classList.remove('hidden');
     renderDashboard();
   } else {
     sidebar.classList.remove('hidden');
     mainContent.classList.remove('hidden');
-    dashboardView.classList.add('hidden');
+    dashView.classList.add('hidden');
   }
 });
 
@@ -197,8 +196,8 @@ async function addRootFolder() {
 
 // ===== RENDER SIDEBAR =====
 function renderSidebar() {
-  const container = document.getElementById('sidebar-content');
-  const empty = document.getElementById('empty-sidebar');
+  const container  = document.getElementById('sidebar-content');
+  const empty      = document.getElementById('empty-sidebar');
   const rootFolders = folders.filter(f => !f.parentId);
 
   container.innerHTML = '';
@@ -214,7 +213,8 @@ function renderSidebar() {
 }
 
 // ===== RENDER FOLDER =====
-function renderFolder(folder, depth) {
+// ✅ openByDefault permet d'ouvrir automatiquement le dossier parent à la création
+function renderFolder(folder, depth, openByDefault = false) {
   const wrap = document.createElement('div');
   wrap.className = 'folder-item';
 
@@ -224,11 +224,11 @@ function renderFolder(folder, depth) {
 
   const arrow = document.createElement('span');
   arrow.className = 'folder-arrow';
-  arrow.textContent = '▶';
 
+  // ✅ Icône SVG alignée
   const icon = document.createElement('span');
   icon.className = 'folder-icon';
-  icon.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="${folder.color || '#6366f1'}" xmlns="http://www.w3.org/2000/svg">
+  icon.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="${folder.color || '#6366f1'}" xmlns="http://www.w3.org/2000/svg" style="display:block">
     <path d="M10 4H4C2.9 4 2 4.9 2 6V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V8C22 6.9 21.1 6 20 6H12L10 4Z"/>
   </svg>`;
   icon.style.filter = `drop-shadow(0 0 4px ${folder.color || '#6366f1'}66)`;
@@ -259,6 +259,8 @@ function renderFolder(folder, depth) {
     }));
     actions.appendChild(makeActionBtn('◉', 'Couleur', () => openColorPicker(folder.id)));
     actions.appendChild(makeActionBtn('⊞', 'Étiquettes', () => openTagManager(folder.id, 'folder')));
+
+    // ✅ Nouveau fichier → ouvre le dossier parent
     actions.appendChild(makeActionBtn('+', 'Nouveau fichier', async () => {
       const n = prompt('Nom du fichier :');
       if (n?.trim()) {
@@ -269,9 +271,13 @@ function renderFolder(folder, depth) {
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp(), size: 0
           });
+          // ✅ Forcer l'ouverture du dossier parent
+          openFolderInSidebar(folder.id);
         });
       }
     }));
+
+    // ✅ Nouveau sous-dossier → ouvre le dossier parent
     actions.appendChild(makeActionBtn('⊕', 'Sous-dossier', async () => {
       const n = prompt('Nom du sous-dossier :');
       if (n?.trim()) {
@@ -280,8 +286,11 @@ function renderFolder(folder, depth) {
           name: n.trim(), parentId: folder.id,
           color, tags: [], createdAt: serverTimestamp()
         });
+        // ✅ Forcer l'ouverture du dossier parent
+        openFolderInSidebar(folder.id);
       }
     }));
+
     actions.appendChild(makeActionBtn('✕', 'Supprimer', async () => {
       if (confirm(`Supprimer "${folder.name}" ?`))
         await deleteDoc(doc(db, 'folders', folder.id));
@@ -293,7 +302,17 @@ function renderFolder(folder, depth) {
   wrap.appendChild(header);
 
   const children = document.createElement('div');
-  children.className = 'folder-children hidden';
+  children.className = 'folder-children';
+
+  // ✅ Ouverture par défaut si demandé
+  if (openByDefault) {
+    children.classList.remove('hidden');
+    arrow.textContent = '▼';
+    arrow.classList.add('open');
+  } else {
+    children.classList.add('hidden');
+    arrow.textContent = '▶';
+  }
 
   folders.filter(f => f.parentId === folder.id)
     .forEach(sub => children.appendChild(renderFolder(sub, depth + 1)));
@@ -302,6 +321,9 @@ function renderFolder(folder, depth) {
     .forEach(file => children.appendChild(renderFile(file, depth + 1)));
 
   wrap.appendChild(children);
+
+  // Mémoriser l'id du dossier sur le wrap pour pouvoir le retrouver
+  wrap.dataset.folderId = folder.id;
 
   header.addEventListener('click', (e) => {
     if (e.target.closest('.folder-actions')) return;
@@ -312,6 +334,18 @@ function renderFolder(folder, depth) {
   });
 
   return wrap;
+}
+
+// ✅ Ouvre un dossier spécifique dans la sidebar après création
+function openFolderInSidebar(folderId) {
+  const wrap = document.querySelector(`[data-folder-id="${folderId}"]`);
+  if (!wrap) return;
+  const children = wrap.querySelector('.folder-children');
+  const arrow    = wrap.querySelector('.folder-arrow');
+  if (!children || !arrow) return;
+  children.classList.remove('hidden');
+  arrow.classList.add('open');
+  arrow.textContent = '▼';
 }
 
 // ===== RENDER FILE =====
@@ -369,7 +403,6 @@ function renderFile(file, depth) {
 function renderDashboard() {
   const grid = document.getElementById('dashboard-grid');
   grid.innerHTML = '';
-
   const rootFolders = folders.filter(f => !f.parentId);
 
   if (rootFolders.length === 0) {
@@ -381,7 +414,7 @@ function renderDashboard() {
 
   rootFolders.forEach(folder => {
     const fileCount = files.filter(f => f.folderId === folder.id).length;
-    const subCount = folders.filter(f => f.parentId === folder.id).length;
+    const subCount  = folders.filter(f => f.parentId === folder.id).length;
 
     const card = document.createElement('div');
     card.className = 'dashboard-card';
@@ -405,9 +438,10 @@ function renderDashboard() {
       </div>
     `;
 
+    // ✅ Retour vue classique via le bouton dashboard
     card.addEventListener('click', () => {
-      document.getElementById('dashboard-toggle').checked = false;
       isDashboard = false;
+      document.getElementById('dashboard-btn').className = 'mode-btn dashboard-inactive';
       document.getElementById('sidebar').classList.remove('hidden');
       document.getElementById('main-content').classList.remove('hidden');
       document.getElementById('dashboard-view').classList.add('hidden');
@@ -432,11 +466,11 @@ function openFile(file) {
   currentImages = (file.images || []);
   renderImagePanel();
 
-  // Désactiver l'import si mode lecture
+  // Bouton import visible seulement en mode édition
   const uploadLabel = document.getElementById('image-upload-label');
-  if (uploadLabel) {
-    uploadLabel.classList.toggle('disabled', !isEditMode);
-  }
+  const uploadHint  = document.getElementById('image-upload-hint');
+  if (uploadLabel) uploadLabel.classList.toggle('hidden', !isEditMode);
+  if (uploadHint)  uploadHint.classList.toggle('hidden', !isEditMode);
 
   renderSidebar();
 }
@@ -457,7 +491,7 @@ function updateEditorHeader(file) {
 
 function closeEditor() {
   selectedFileId = null;
-  currentImages = [];
+  currentImages  = [];
   renderImagePanel();
   document.getElementById('empty-state').classList.remove('hidden');
   document.getElementById('editor-wrapper').classList.add('hidden');
@@ -465,11 +499,11 @@ function closeEditor() {
 
 // ===== PROPRIÉTÉS =====
 function showFileProperties(file) {
-  document.getElementById('prop-name').textContent = file.name;
-  document.getElementById('prop-size').textContent = formatSize(file.size);
+  document.getElementById('prop-name').textContent    = file.name;
+  document.getElementById('prop-size').textContent    = formatSize(file.size);
   document.getElementById('prop-created').textContent = formatDate(file.createdAt);
   document.getElementById('prop-updated').textContent = formatDate(file.updatedAt);
-  document.getElementById('prop-tags').textContent =
+  document.getElementById('prop-tags').textContent    =
     (file.tags || []).map(t => t.label).join(', ') || 'Aucune';
   document.getElementById('props-overlay').classList.remove('hidden');
 }
@@ -502,9 +536,9 @@ document.getElementById('color-cancel').addEventListener('click', () => {
 
 // ===== TAGS =====
 function openTagManager(targetId, targetType) {
-  currentTagTarget = targetId;
+  currentTagTarget     = targetId;
   currentTagTargetType = targetType;
-  selectedTagColor = TAG_COLORS[0];
+  selectedTagColor     = TAG_COLORS[0];
 
   const picker = document.getElementById('tag-color-picker');
   picker.innerHTML = '';
@@ -554,7 +588,7 @@ function renderTagList() {
 document.getElementById('tag-add-btn').addEventListener('click', async () => {
   const label = document.getElementById('tag-input').value.trim();
   if (!label) return;
-  const col = currentTagTargetType === 'folder' ? 'folders' : 'files';
+  const col    = currentTagTargetType === 'folder' ? 'folders' : 'files';
   const target = currentTagTargetType === 'folder'
     ? folders.find(f => f.id === currentTagTarget)
     : files.find(f => f.id === currentTagTarget);
@@ -579,7 +613,7 @@ document.getElementById('image-panel-toggle').addEventListener('click', () => {
 
 document.getElementById('image-upload-input').addEventListener('change', async (e) => {
   if (!isEditMode) return;
-  const files = Array.from(e.target.files);
+  const selectedFiles = Array.from(e.target.files);
   const remaining = 5 - currentImages.length;
 
   if (remaining <= 0) {
@@ -588,8 +622,8 @@ document.getElementById('image-upload-input').addEventListener('change', async (
     return;
   }
 
-  const toAdd = files.slice(0, remaining);
-  if (files.length > remaining) {
+  const toAdd = selectedFiles.slice(0, remaining);
+  if (selectedFiles.length > remaining) {
     alert(`Seulement ${remaining} image(s) ajoutée(s) (limite : 5).`);
   }
 
@@ -616,29 +650,22 @@ function fileToBase64(file) {
 }
 
 function renderImagePanel() {
-  const list = document.getElementById('image-list');
-  const badge = document.getElementById('image-count-badge');
-  const uploadLabel = document.getElementById('image-upload-label');
+  const list        = document.getElementById('image-list');
+  const badge       = document.getElementById('image-count-badge');
 
   if (!list || !badge) return;
 
-  list.innerHTML = '';
+  list.innerHTML  = '';
   badge.textContent = `${currentImages.length} / 5`;
-
-  if (currentImages.length >= 5 || !isEditMode) {
-    uploadLabel?.classList.add('disabled');
-  } else {
-    uploadLabel?.classList.remove('disabled');
-  }
 
   currentImages.forEach((img, index) => {
     const item = document.createElement('div');
     item.className = 'image-item';
-    item.draggable = true;
+    item.draggable = isEditMode;
     item.dataset.index = index;
 
     item.innerHTML = `
-      <span class="drag-handle">⠿⠿</span>
+      ${isEditMode ? '<span class="drag-handle">⠿⠿</span>' : ''}
       <span class="image-number">${index + 1}</span>
       <img src="${img.base64}" alt="${img.name}" />
       <div class="image-item-overlay">
@@ -647,45 +674,33 @@ function renderImagePanel() {
       </div>
     `;
 
-    // Drag & Drop
-    item.addEventListener('dragstart', (e) => {
-      if (!isEditMode) return;
-      dragSrcIndex = index;
-      item.classList.add('dragging');
-      e.dataTransfer.effectAllowed = 'move';
-    });
-
-    item.addEventListener('dragend', () => {
-      item.classList.remove('dragging');
-      document.querySelectorAll('.image-item').forEach(el => el.classList.remove('drag-over'));
-    });
-
-    item.addEventListener('dragover', (e) => {
-      if (!isEditMode) return;
-      e.preventDefault();
-      e.dataTransfer.dropEffect = 'move';
-      document.querySelectorAll('.image-item').forEach(el => el.classList.remove('drag-over'));
-      item.classList.add('drag-over');
-    });
-
-    item.addEventListener('drop', async (e) => {
-      e.preventDefault();
-      if (!isEditMode || dragSrcIndex === null || dragSrcIndex === index) return;
-      const moved = currentImages.splice(dragSrcIndex, 1)[0];
-      currentImages.splice(index, 0, moved);
-      dragSrcIndex = null;
-      renderImagePanel();
-      await saveImages();
-    });
-
-    // Voir en grand
-    item.querySelector('.img-btn-view').addEventListener('click', (e) => {
-      e.stopPropagation();
-      openLightbox(img.base64);
-    });
-
-    // Supprimer (mode édition seulement)
+    // Drag & Drop (mode édition uniquement)
     if (isEditMode) {
+      item.addEventListener('dragstart', (e) => {
+        dragSrcIndex = index;
+        item.classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'move';
+      });
+      item.addEventListener('dragend', () => {
+        item.classList.remove('dragging');
+        document.querySelectorAll('.image-item').forEach(el => el.classList.remove('drag-over'));
+      });
+      item.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        document.querySelectorAll('.image-item').forEach(el => el.classList.remove('drag-over'));
+        item.classList.add('drag-over');
+      });
+      item.addEventListener('drop', async (e) => {
+        e.preventDefault();
+        if (dragSrcIndex === null || dragSrcIndex === index) return;
+        const moved = currentImages.splice(dragSrcIndex, 1)[0];
+        currentImages.splice(index, 0, moved);
+        dragSrcIndex = null;
+        renderImagePanel();
+        await saveImages();
+      });
+
       item.querySelector('.img-btn-delete').addEventListener('click', async (e) => {
         e.stopPropagation();
         if (confirm(`Supprimer l'image "${img.name}" ?`)) {
@@ -696,7 +711,12 @@ function renderImagePanel() {
       });
     }
 
-    // Clic direct → lightbox
+    // Voir en grand (toujours disponible)
+    item.querySelector('.img-btn-view').addEventListener('click', (e) => {
+      e.stopPropagation();
+      openLightbox(img.base64);
+    });
+
     item.addEventListener('click', (e) => {
       if (e.target.closest('.image-item-overlay')) return;
       openLightbox(img.base64);
@@ -718,7 +738,7 @@ function openLightbox(src) {
   zoomLevel = 1;
   lightboxTranslateX = 0;
   lightboxTranslateY = 0;
-  const img = document.getElementById('lightbox-img');
+  const img     = document.getElementById('lightbox-img');
   const wrapper = document.getElementById('lightbox-img-wrapper');
   img.src = src;
   updateLightboxZoom();
@@ -727,7 +747,7 @@ function openLightbox(src) {
 }
 
 function updateLightboxZoom() {
-  const img = document.getElementById('lightbox-img');
+  const img     = document.getElementById('lightbox-img');
   const wrapper = document.getElementById('lightbox-img-wrapper');
   img.style.transform = `translate(${lightboxTranslateX}px, ${lightboxTranslateY}px) scale(${zoomLevel})`;
   document.getElementById('zoom-level').textContent = `${Math.round(zoomLevel * 100)}%`;
@@ -738,25 +758,21 @@ document.getElementById('zoom-in').addEventListener('click', () => {
   zoomLevel = Math.min(zoomLevel + 0.25, 4);
   updateLightboxZoom();
 });
-
 document.getElementById('zoom-out').addEventListener('click', () => {
   zoomLevel = Math.max(zoomLevel - 0.25, 0.25);
   if (zoomLevel <= 1) { lightboxTranslateX = 0; lightboxTranslateY = 0; }
   updateLightboxZoom();
 });
-
 document.getElementById('zoom-reset').addEventListener('click', () => {
   zoomLevel = 1;
   lightboxTranslateX = 0;
   lightboxTranslateY = 0;
   updateLightboxZoom();
 });
-
 document.getElementById('lightbox-close').addEventListener('click', () => {
   document.getElementById('lightbox-overlay').classList.add('hidden');
 });
 
-// Zoom molette
 document.getElementById('lightbox-img-wrapper').addEventListener('wheel', (e) => {
   e.preventDefault();
   const delta = e.deltaY > 0 ? -0.15 : 0.15;
@@ -765,7 +781,6 @@ document.getElementById('lightbox-img-wrapper').addEventListener('wheel', (e) =>
   updateLightboxZoom();
 }, { passive: false });
 
-// Glissement image zoomée
 const lbWrapper = document.getElementById('lightbox-img-wrapper');
 lbWrapper.addEventListener('mousedown', (e) => {
   if (zoomLevel <= 1) return;
@@ -773,17 +788,14 @@ lbWrapper.addEventListener('mousedown', (e) => {
   lightboxStartX = e.clientX - lightboxTranslateX;
   lightboxStartY = e.clientY - lightboxTranslateY;
 });
-
 window.addEventListener('mousemove', (e) => {
   if (!isDraggingLightbox) return;
   lightboxTranslateX = e.clientX - lightboxStartX;
   lightboxTranslateY = e.clientY - lightboxStartY;
   updateLightboxZoom();
 });
-
 window.addEventListener('mouseup', () => { isDraggingLightbox = false; });
 
-// Fermer en cliquant en dehors
 document.getElementById('lightbox-overlay').addEventListener('click', (e) => {
   if (e.target === document.getElementById('lightbox-overlay')) {
     document.getElementById('lightbox-overlay').classList.add('hidden');
