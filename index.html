@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
   <title>Notes App</title>
   <link rel="icon" href="data:,">
   <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet"/>
@@ -77,9 +77,7 @@
     <div class="modal-box tag-box">
       <h3>Gérer les étiquettes</h3>
       <div class="tag-input-row">
-        <div class="tag-colors">
-          <div id="tag-color-picker" class="tag-colors"></div>
-        </div>
+        <div id="tag-color-picker" class="tag-colors"></div>
         <div style="display:flex; gap:8px;">
           <input id="tag-input" type="text" class="rename-input" placeholder="Nom de l'étiquette…"/>
           <button id="tag-add-btn" class="btn-confirm">Ajouter</button>
@@ -117,10 +115,10 @@
     <div class="lightbox-box">
       <button id="lightbox-close" class="lightbox-close">✕</button>
       <div class="lightbox-zoom-controls">
-        <button id="zoom-out" title="Dézoomer">－</button>
+        <button id="zoom-out">－</button>
         <span id="zoom-level">100%</span>
-        <button id="zoom-in" title="Zoomer">＋</button>
-        <button id="zoom-reset" title="Réinitialiser">⊙</button>
+        <button id="zoom-in">＋</button>
+        <button id="zoom-reset">⊙</button>
       </div>
       <div class="lightbox-img-wrapper" id="lightbox-img-wrapper">
         <img id="lightbox-img" src="" alt="Aperçu" draggable="false"/>
@@ -128,14 +126,13 @@
     </div>
   </div>
 
-  <!-- ===== ÉCRAN MODULES (page d'accueil) ===== -->
+  <!-- ===== ÉCRAN MODULES ===== -->
   <div id="modules-screen" class="modules-screen">
-    <!-- Titre animé -->
     <div class="modules-topbar">
       <h1 class="app-title-anim" id="app-title-anim">NOTES APP</h1>
       <div class="modules-topbar-right">
         <button id="modules-mode-btn" class="mode-btn read-active">Mode Lecture</button>
-        <button id="modules-add-btn" class="mode-btn dashboard-inactive hidden">+ Nouveau module</button>
+        <button id="modules-add-btn" class="mode-btn dashboard-inactive hidden">+ Module</button>
         <div class="theme-selector">
           <button class="theme-btn active" data-theme="violet" title="Violet">
             <span class="theme-dot" style="background:linear-gradient(135deg,#6366f1,#8b5cf6)"></span>
@@ -158,9 +155,13 @@
   <!-- ===== APPLICATION PRINCIPALE ===== -->
   <div id="app-container" class="app-container hidden">
 
+    <!-- TOPBAR -->
     <header class="topbar">
       <div class="topbar-left">
-        <button id="back-to-modules" class="back-btn" title="Retour aux modules">← <span id="current-module-name">Modules</span></button>
+        <button id="back-to-modules" class="back-btn">←</button>
+        <!-- ✅ MOBILE : bouton hamburger sidebar -->
+        <button id="sidebar-toggle" class="sidebar-toggle-btn" title="Menu">☰</button>
+        <span id="current-module-name" class="module-name-label"></span>
       </div>
       <div class="topbar-center">
         <button id="mode-btn" class="mode-btn read-active">Mode Lecture</button>
@@ -184,34 +185,48 @@
       </div>
     </header>
 
+    <!-- BODY -->
     <div class="app-body">
 
+      <!-- OVERLAY sidebar mobile -->
+      <div id="sidebar-overlay" class="sidebar-overlay hidden"></div>
+
+      <!-- SIDEBAR -->
       <aside id="sidebar" class="sidebar">
         <div class="sidebar-header">
           <span>Mes dossiers</span>
-          <button id="add-root-folder" class="add-folder-btn hidden" title="Nouveau dossier">+</button>
+          <div style="display:flex;align-items:center;gap:6px">
+            <button id="add-root-folder" class="add-folder-btn hidden" title="Nouveau dossier">+</button>
+            <!-- ✅ Bouton fermer sidebar sur mobile -->
+            <button id="sidebar-close" class="sidebar-close-btn">✕</button>
+          </div>
         </div>
         <div id="sidebar-content" class="sidebar-content">
           <div id="empty-sidebar" class="empty-sidebar">Aucun dossier disponible</div>
         </div>
       </aside>
 
+      <!-- MAIN -->
       <main id="main-content" class="main-content">
         <div id="empty-state" class="empty-state">
           <span class="empty-icon">📝</span>
           <h2>Sélectionnez une note</h2>
           <p>Choisissez un fichier dans le panneau de gauche</p>
         </div>
+
         <div id="editor-wrapper" class="editor-wrapper hidden">
           <div class="editor-header">
+            <!-- ✅ MOBILE : bouton retour depuis l'éditeur -->
+            <button id="editor-back-btn" class="editor-back-btn">← Retour</button>
             <h2 id="editor-title">Sans titre</h2>
             <span id="read-only-badge" class="read-only-badge">Lecture seule</span>
             <div id="file-tag-badges" class="file-tag-badges"></div>
           </div>
+
           <div id="editor-area" class="editor-area">
             <div id="editor"></div>
             <div id="image-panel" class="image-panel collapsed">
-              <button id="image-panel-toggle" class="image-panel-toggle" title="Afficher/Masquer le panneau images">
+              <button id="image-panel-toggle" class="image-panel-toggle">
                 <span id="panel-arrow">◀</span>
               </button>
               <div class="image-panel-content">
@@ -231,10 +246,10 @@
         </div>
       </main>
 
+      <!-- DASHBOARD -->
       <div id="dashboard-view" class="dashboard-view hidden">
         <div class="dashboard-header">
           <h2>Tableau de bord</h2>
-          <!-- ✅ FIX alignement bouton + -->
           <button id="dashboard-add-folder" class="add-folder-btn-dashboard hidden">
             <span>+</span> Nouveau dossier
           </button>
@@ -243,6 +258,27 @@
       </div>
 
     </div>
+
+    <!-- ✅ MOBILE : Barre de navigation bas -->
+    <nav class="mobile-nav">
+      <button class="mobile-nav-btn active" id="nav-files" data-view="files">
+        <span>📁</span>
+        <span>Fichiers</span>
+      </button>
+      <button class="mobile-nav-btn" id="nav-dashboard" data-view="dashboard">
+        <span>📊</span>
+        <span>Dashboard</span>
+      </button>
+      <button class="mobile-nav-btn" id="nav-mode" data-view="mode">
+        <span id="nav-mode-icon">👁</span>
+        <span id="nav-mode-label">Lecture</span>
+      </button>
+      <button class="mobile-nav-btn" id="nav-back" data-view="back">
+        <span>🏠</span>
+        <span>Modules</span>
+      </button>
+    </nav>
+
   </div>
 
   <script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
