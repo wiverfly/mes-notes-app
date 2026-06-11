@@ -4,52 +4,59 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Notes App</title>
-  <link rel="stylesheet" href="style.css" />
-  <link rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/quill/1.3.7/quill.snow.min.css"/>
+
+  <!-- Quill -->
+  <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet"/>
+  <link rel="stylesheet" href="style.css"/>
 </head>
-<!-- MODAL RGPD -->
-<div id="rgpd-overlay" class="modal-overlay hidden">
-  <div class="modal-box rgpd-box">
-    <div class="modal-icon">🔒</div>
-    <h2>Information RGPD</h2>
-    <p>
-      Le contenu de ce fichier sera <strong>hébergé sur Firebase</strong>,
-      un service cloud fourni par <strong>Google (USA)</strong>.<br><br>
-      ⚠️ Dans un cadre <strong>professionnel ou sensible</strong>,
-      cela peut ne pas être conforme à la <strong>RGPD</strong> selon
-      la nature des données que vous y stockez.<br><br>
-      Les serveurs sont localisés en <strong>Europe (Frankfurt)</strong>
-      mais le service reste soumis aux conditions de Google.<br><br>
-      En continuant, vous acceptez que vos données soient
-      stockées sur cette infrastructure.
-    </p>
-    <div class="rgpd-info">
-      <span>🌍 Hébergement : Firebase / Google</span>
-      <span>📍 Région : europe-west3 (Frankfurt)</span>
-      <span>📋 En savoir plus :
-        <a href="https://firebase.google.com/support/privacy"
-           target="_blank">firebase.google.com/support/privacy</a>
-      </span>
-    </div>
-    <div class="modal-actions">
-      <button id="rgpd-cancel" class="btn-cancel">Annuler</button>
-      <button id="rgpd-confirm" class="btn-confirm">J'ai compris, continuer</button>
-    </div>
-  </div>
-</div>
 <body>
 
-  <!-- MODAL AVERTISSEMENT -->
+  <!-- ===== MODAL RGPD ===== -->
+  <div id="rgpd-overlay" class="modal-overlay hidden">
+    <div class="modal-box rgpd-box">
+      <div class="modal-icon">🔒</div>
+      <h2>Information RGPD</h2>
+      <p>
+        Le contenu de ce fichier sera hébergé sur <strong>Firebase</strong>,
+        un service cloud fourni par Google (USA).
+      </p>
+      <p style="margin-top:10px">
+        ⚠️ Dans un cadre professionnel ou sensible,
+        cela peut ne pas être conforme à la RGPD selon
+        la nature des données que vous y stockez.
+      </p>
+      <div class="rgpd-info">
+        <span>Les serveurs sont localisés en Europe (Frankfurt)
+        mais le service reste soumis aux conditions de Google.</span>
+        <span>En continuant, vous acceptez que vos données soient
+        stockées sur cette infrastructure.</span>
+        <span>🌍 Hébergement : Firebase / Google</span>
+        <span>📍 Région : europe-west3 (Frankfurt)</span>
+        <span>📋 En savoir plus :
+          <a href="https://firebase.google.com/support/privacy" target="_blank">
+            firebase.google.com/support/privacy
+          </a>
+        </span>
+      </div>
+      <div class="modal-actions">
+        <button id="rgpd-cancel" class="btn-cancel">Annuler</button>
+        <button id="rgpd-confirm" class="btn-confirm">J'ai compris, continuer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MODAL MODE ÉDITION ===== -->
   <div id="modal-overlay" class="modal-overlay hidden">
     <div class="modal-box">
       <div class="modal-icon">⚠️</div>
       <h2>Passer en mode édition</h2>
-      <p>
-        Vous êtes sur le point d'activer le <strong>mode édition</strong>.<br><br>
-        Ce mode vous permet de <strong>créer, modifier et supprimer</strong>
-        des fichiers et dossiers.<br><br>
-        Merci de <strong>ne pas modifier le travail des autres utilisateurs</strong>
+      <p>Vous êtes sur le point d'activer le mode édition.</p>
+      <p style="margin-top:10px">
+        Ce mode vous permet de créer, modifier et supprimer
+        des fichiers et dossiers.
+      </p>
+      <p style="margin-top:10px">
+        Merci de ne pas modifier le travail des autres utilisateurs
         sans leur accord. Utilisez ce mode de manière responsable. 🙏
       </p>
       <div class="modal-actions">
@@ -59,46 +66,45 @@
     </div>
   </div>
 
-  <!-- MODAL PROPRIÉTÉS -->
+  <!-- ===== MODAL PROPRIÉTÉS ===== -->
   <div id="props-overlay" class="modal-overlay hidden">
     <div class="modal-box props-box">
       <button id="props-close" class="props-close">✕</button>
       <h3>Propriétés du fichier</h3>
       <table class="props-table">
-        <tbody>
-          <tr><td>Nom</td><td id="prop-name">-</td></tr>
-          <tr><td>Taille</td><td id="prop-size">-</td></tr>
-          <tr><td>Créé le</td><td id="prop-created">-</td></tr>
-          <tr><td>Modifié le</td><td id="prop-updated">-</td></tr>
-          <tr><td>Étiquettes</td><td id="prop-tags">-</td></tr>
-        </tbody>
+        <tr><td>Nom</td>      <td id="prop-name">-</td></tr>
+        <tr><td>Taille</td>   <td id="prop-size">-</td></tr>
+        <tr><td>Créé le</td>  <td id="prop-created">-</td></tr>
+        <tr><td>Modifié le</td><td id="prop-updated">-</td></tr>
+        <tr><td>Étiquettes</td><td id="prop-tags">-</td></tr>
       </table>
     </div>
   </div>
 
-  <!-- MODAL COULEUR -->
+  <!-- ===== MODAL COULEUR DOSSIER ===== -->
   <div id="color-overlay" class="modal-overlay hidden">
     <div class="modal-box color-box">
       <h3>Couleur du dossier</h3>
-      <div class="color-grid" id="color-grid"></div>
+      <div id="color-grid" class="color-grid"></div>
       <div class="modal-actions">
         <button id="color-cancel" class="btn-cancel">Annuler</button>
       </div>
     </div>
   </div>
 
-  <!-- MODAL TAGS -->
+  <!-- ===== MODAL TAGS ===== -->
   <div id="tag-overlay" class="modal-overlay hidden">
     <div class="modal-box tag-box">
       <h3>Gérer les étiquettes</h3>
       <div class="tag-input-row">
-        <input id="tag-input" type="text" placeholder="Nom de l'étiquette..."
-               class="rename-input" maxlength="20"/>
-        <div class="tag-colors" id="tag-color-picker"></div>
+        <div class="tag-colors">
+          <div id="tag-color-picker" class="tag-colors"></div>
+        </div>
+        <div style="display:flex; gap:8px;">
+          <input id="tag-input" type="text" class="rename-input" placeholder="Nom de l'étiquette…"/>
+          <button id="tag-add-btn" class="btn-confirm">Ajouter</button>
+        </div>
       </div>
-      <button id="tag-add-btn" class="btn-confirm" style="margin-top:10px">
-        Ajouter
-      </button>
       <div id="tag-list" class="tag-list"></div>
       <div class="modal-actions">
         <button id="tag-cancel" class="btn-cancel">Fermer</button>
@@ -106,141 +112,147 @@
     </div>
   </div>
 
-  <!-- APP -->
+  <!-- ===== LIGHTBOX ===== -->
+  <div id="lightbox-overlay" class="modal-overlay hidden">
+    <div class="lightbox-box">
+      <button id="lightbox-close" class="lightbox-close">✕</button>
+      <div class="lightbox-zoom-controls">
+        <button id="zoom-out" title="Dézoomer">－</button>
+        <span id="zoom-level">100%</span>
+        <button id="zoom-in" title="Zoomer">＋</button>
+        <button id="zoom-reset" title="Réinitialiser">⊙</button>
+      </div>
+      <div class="lightbox-img-wrapper" id="lightbox-img-wrapper">
+        <img id="lightbox-img" src="" alt="Aperçu" draggable="false"/>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== APP ===== -->
   <div class="app-container">
 
     <!-- TOPBAR -->
-    <div class="topbar">
+    <header class="topbar">
       <div class="topbar-left">
-        <span class="app-title">Notes App</span>
+        <span class="app-title">📝 Notes App</span>
       </div>
       <div class="topbar-center">
-        <button id="mode-btn" class="mode-btn read-active">
-          Mode Lecture
-        </button>
+        <button id="mode-btn" class="mode-btn read-active">Mode Lecture</button>
       </div>
       <div class="topbar-right">
-        <!-- SÉLECTEUR DE THÈME -->
-        <div class="theme-selector">
-          <button class="theme-btn active" data-theme="violet" title="Violet">
-            <span class="theme-dot" style="background:#6366f1"></span>
-          </button>
-          <button class="theme-btn" data-theme="pastel" title="Pastel">
-            <span class="theme-dot" style="background:#a78bfa"></span>
-          </button>
-          <button class="theme-btn" data-theme="grey" title="Gris">
-            <span class="theme-dot" style="background:#94a3b8"></span>
-          </button>
-          <button class="theme-btn" data-theme="dark" title="Sombre">
-            <span class="theme-dot" style="background:#334155"></span>
-          </button>
-        </div>
-        <!-- TOGGLE DASHBOARD -->
-        <label class="dashboard-toggle" title="Mode Dashboard">
+        <!-- Toggle Dashboard -->
+        <label class="dashboard-toggle">
           <input type="checkbox" id="dashboard-toggle"/>
           <span class="toggle-label">Dashboard</span>
         </label>
-      </div>
-    </div>
-
-    <!-- BODY -->
-    <div class="app-body" id="app-body">
-
-      <!-- SIDEBAR -->
-      <aside class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-          <span class="sidebar-title">Mes dossiers</span>
-          <button id="add-root-folder" class="add-folder-btn hidden" title="Nouveau dossier">
-            +
+        <!-- Thèmes -->
+        <div class="theme-selector">
+          <button class="theme-btn active" data-theme="violet" title="Violet">
+            <span class="theme-dot" style="background:linear-gradient(135deg,#6366f1,#8b5cf6)"></span>
+          </button>
+          <button class="theme-btn" data-theme="pastel" title="Pastel">
+            <span class="theme-dot" style="background:linear-gradient(135deg,#a78bfa,#f9a8d4)"></span>
+          </button>
+          <button class="theme-btn" data-theme="grey" title="Gris">
+            <span class="theme-dot" style="background:linear-gradient(135deg,#64748b,#94a3b8)"></span>
+          </button>
+          <button class="theme-btn" data-theme="dark" title="Sombre">
+            <span class="theme-dot" style="background:linear-gradient(135deg,#1e293b,#0f172a)"></span>
           </button>
         </div>
-        <div class="sidebar-content" id="sidebar-content">
-          <div class="empty-sidebar" id="empty-sidebar">
-            Aucun dossier disponible
-          </div>
+      </div>
+    </header>
+
+    <!-- APP BODY -->
+    <div class="app-body">
+
+      <!-- SIDEBAR -->
+      <aside id="sidebar" class="sidebar">
+        <div class="sidebar-header">
+          <span>Mes dossiers</span>
+          <button id="add-root-folder" class="add-folder-btn hidden" title="Nouveau dossier">+</button>
+        </div>
+        <div id="sidebar-content" class="sidebar-content">
+          <div id="empty-sidebar" class="empty-sidebar">Aucun dossier disponible</div>
         </div>
       </aside>
 
-      <!-- CONTENU PRINCIPAL -->
-      <main class="main-content" id="main-content">
-        <div class="empty-state" id="empty-state">
-          <div class="empty-icon">📝</div>
+      <!-- MAIN CONTENT -->
+      <main id="main-content" class="main-content">
+
+        <!-- EMPTY STATE -->
+        <div id="empty-state" class="empty-state">
+          <span class="empty-icon">📝</span>
           <h2>Sélectionnez une note</h2>
           <p>Choisissez un fichier dans le panneau de gauche</p>
         </div>
-        <div class="editor-wrapper hidden" id="editor-wrapper">
+
+        <!-- EDITOR WRAPPER -->
+        <div id="editor-wrapper" class="editor-wrapper hidden">
+
+          <!-- EN-TÊTE ÉDITEUR -->
           <div class="editor-header">
             <h2 id="editor-title">Sans titre</h2>
             <span id="read-only-badge" class="read-only-badge">Lecture seule</span>
             <div id="file-tag-badges" class="file-tag-badges"></div>
           </div>
-          <div id="editor"></div>
-        </div>
+
+          <!-- ZONE ÉDITEUR + PANNEAU IMAGE -->
+          <div id="editor-area" class="editor-area">
+
+            <!-- ÉDITEUR QUILL -->
+            <div id="editor"></div>
+
+            <!-- PANNEAU IMAGE -->
+            <div id="image-panel" class="image-panel collapsed">
+
+              <!-- FLÈCHE TOGGLE -->
+              <button id="image-panel-toggle" class="image-panel-toggle" title="Afficher/Masquer le panneau images">
+                <span id="panel-arrow">◀</span>
+              </button>
+
+              <!-- CONTENU -->
+              <div class="image-panel-content">
+                <div class="image-panel-header">
+                  <span class="image-panel-title">🖼️ Images</span>
+                  <span id="image-count-badge" class="image-count-badge">0 / 5</span>
+                </div>
+
+                <!-- IMPORT -->
+                <label id="image-upload-label" class="image-upload-label" for="image-upload-input">
+                  <span>＋ Ajouter une image</span>
+                  <input type="file" id="image-upload-input" accept="image/*" multiple style="display:none"/>
+                </label>
+                <p class="image-upload-hint">Glissez ou cliquez • max 5 images • 500 Ko/image</p>
+
+                <!-- LISTE DRAG & DROP -->
+                <div id="image-list" class="image-list"></div>
+              </div>
+
+            </div><!-- fin image-panel -->
+
+          </div><!-- fin editor-area -->
+
+        </div><!-- fin editor-wrapper -->
+
       </main>
 
       <!-- DASHBOARD VIEW -->
-      <div class="dashboard-view hidden" id="dashboard-view">
+      <div id="dashboard-view" class="dashboard-view hidden">
         <div class="dashboard-header">
           <h2>Tableau de bord</h2>
-          <button id="dashboard-add-folder" class="add-folder-btn hidden">
-            + Nouveau dossier
-          </button>
+          <button id="dashboard-add-folder" class="add-folder-btn hidden" title="Nouveau dossier">+ Nouveau dossier</button>
         </div>
-        <div class="dashboard-grid" id="dashboard-grid"></div>
+        <div id="dashboard-grid" class="dashboard-grid"></div>
       </div>
 
-    </div>
-  </div>
-<!-- ZONE ÉDITEUR + PANNEAU IMAGE -->
-<div id="editor-area" class="editor-area">
+    </div><!-- fin app-body -->
+  </div><!-- fin app-container -->
 
-  <!-- ÉDITEUR QUILL EXISTANT -->
-  <div id="editor"></div>
-
-  <!-- PANNEAU IMAGE -->
-  <div id="image-panel" class="image-panel collapsed">
-
-    <!-- FLÈCHE D'EXTENSION -->
-    <button id="image-panel-toggle" class="image-panel-toggle" title="Afficher/Masquer le panneau images">
-      <span id="panel-arrow">◀</span>
-    </button>
-
-    <!-- CONTENU DU PANNEAU -->
-    <div class="image-panel-content">
-      <div class="image-panel-header">
-        <span class="image-panel-title">🖼️ Images</span>
-        <span id="image-count-badge" class="image-count-badge">0 / 5</span>
-      </div>
-
-      <!-- ZONE D'IMPORT -->
-      <label id="image-upload-label" class="image-upload-label" for="image-upload-input">
-        <span>＋ Ajouter une image</span>
-        <input type="file" id="image-upload-input" accept="image/*" multiple style="display:none" />
-      </label>
-      <p class="image-upload-hint">Glissez ou cliquez • max 5 images • 500 Ko/image</p>
-
-      <!-- LISTE DRAG & DROP -->
-      <div id="image-list" class="image-list"></div>
-    </div>
-  </div>
-</div>
-
-<!-- MODALE LOUPE / AGRANDISSEMENT -->
-<div id="lightbox-overlay" class="modal-overlay hidden">
-  <div class="lightbox-box">
-    <button id="lightbox-close" class="lightbox-close">✕</button>
-    <div class="lightbox-zoom-controls">
-      <button id="zoom-out" title="Dézoomer">－</button>
-      <span id="zoom-level">100%</span>
-      <button id="zoom-in" title="Zoomer">＋</button>
-      <button id="zoom-reset" title="Réinitialiser">⊙</button>
-    </div>
-    <div class="lightbox-img-wrapper" id="lightbox-img-wrapper">
-      <img id="lightbox-img" src="" alt="Aperçu" draggable="false" />
-    </div>
-  </div>
-</div>
+  <!-- Quill JS -->
+  <script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
+  <!-- App -->
   <script type="module" src="app.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/quill/1.3.7/quill.min.js"></script>
+
 </body>
 </html>
