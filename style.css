@@ -17,6 +17,7 @@
   --radius: 14px;
   --radius-sm: 8px;
   --folder-hover: rgba(255,255,255,0.10);
+  --mobile-nav-h: 64px;
 }
 
 body.theme-pastel {
@@ -54,9 +55,12 @@ body.theme-dark {
 }
 
 html, body {
-  height: 100%; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  background: var(--bg-gradient); color: var(--text);
-  overflow: hidden; transition: background 0.4s ease, color 0.3s ease;
+  height: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--bg-gradient);
+  color: var(--text);
+  overflow: hidden;
+  transition: background 0.4s ease, color 0.3s ease;
 }
 
 .hidden { display: none !important; }
@@ -68,27 +72,22 @@ html, body {
   60%  { opacity: 1; letter-spacing: 4px; }
   100% { opacity: 1; letter-spacing: 3px; transform: translateY(0); }
 }
-
 @keyframes titleGlow {
   0%, 100% { text-shadow: 0 0 10px rgba(99,102,241,0.4); }
   50%       { text-shadow: 0 0 24px rgba(139,92,246,0.7), 0 0 40px rgba(99,102,241,0.3); }
 }
 
 .app-title-anim {
-  font-size: 2.4rem;
-  font-weight: 900;
-  letter-spacing: 3px;
-  color: var(--text);
+  font-size: 2.4rem; font-weight: 900; letter-spacing: 3px;
+  color: var(--text); text-transform: uppercase;
   animation: titleReveal 0.6s cubic-bezier(0.22,1,0.36,1) forwards,
              titleGlow 3s ease-in-out 0.6s infinite;
-  text-transform: uppercase;
 }
 
 /* ===== ÉCRAN MODULES ===== */
 .modules-screen {
   display: flex; flex-direction: column;
   min-height: 100vh;
-  padding: 0;
   background: var(--bg-gradient);
   animation: fadeIn 0.4s ease;
 }
@@ -96,124 +95,78 @@ html, body {
 .modules-topbar {
   display: flex; align-items: center; justify-content: space-between;
   padding: 18px 36px;
-  background: var(--glass);
-  backdrop-filter: blur(20px);
-  border-bottom: 1px solid var(--glass-border);
-  flex-shrink: 0;
+  background: var(--glass); backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--glass-border); flex-shrink: 0;
 }
 
-.modules-topbar-right {
-  display: flex; align-items: center; gap: 12px;
-}
+.modules-topbar-right { display: flex; align-items: center; gap: 12px; }
 
 .modules-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 24px;
-  padding: 36px;
-  overflow-y: auto;
-  flex: 1;
+  gap: 24px; padding: 36px;
+  overflow-y: auto; flex: 1;
 }
 
 /* ===== CARTE MODULE ===== */
 .module-card {
-  position: relative;
-  border-radius: var(--radius);
+  position: relative; border-radius: var(--radius);
   border: 1px solid var(--glass-border);
-  overflow: hidden;
-  cursor: pointer;
-  transition: all 0.25s ease;
-  min-height: 160px;
+  overflow: hidden; cursor: pointer;
+  transition: all 0.25s ease; min-height: 160px;
   display: flex; flex-direction: column; justify-content: flex-end;
-  background: var(--glass);
-  backdrop-filter: blur(10px);
+  background: var(--glass); backdrop-filter: blur(10px);
 }
-
-/* Liseré couleur en haut */
 .module-card::before {
-  content: '';
-  position: absolute; top: 0; left: 0; right: 0;
-  height: 4px;
-  background: var(--module-color, var(--accent));
-  border-radius: var(--radius) var(--radius) 0 0;
-  z-index: 2;
+  content: ''; position: absolute; top: 0; left: 0; right: 0;
+  height: 4px; background: var(--module-color, var(--accent));
+  border-radius: var(--radius) var(--radius) 0 0; z-index: 2;
 }
-
-/* Image de fond */
 .module-card-bg {
   position: absolute; inset: 0;
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  transition: transform 0.3s ease;
-  z-index: 0;
+  background-size: cover; background-position: center;
+  transition: transform 0.3s ease; z-index: 0;
 }
-
-/* Overlay sombre sur l'image */
 .module-card-overlay {
   position: absolute; inset: 0;
   background: linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.2) 60%, transparent 100%);
   z-index: 1;
 }
-
 .module-card:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(0,0,0,0.35); }
 .module-card:hover .module-card-bg { transform: scale(1.04); }
 
-.module-card-body {
-  position: relative; z-index: 2;
-  padding: 18px 20px 16px;
-}
-
-/* Titre en majuscules sans icône */
+.module-card-body { position: relative; z-index: 2; padding: 18px 20px 16px; }
 .module-card-title {
-  font-size: 1.05rem;
-  font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 1.8px;
-  color: #fff;
+  font-size: 1.05rem; font-weight: 900; text-transform: uppercase;
+  letter-spacing: 1.8px; color: #fff;
   text-shadow: 0 1px 4px rgba(0,0,0,0.6);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  margin-bottom: 4px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 4px;
 }
+.module-card-meta { font-size: 0.75rem; color: rgba(255,255,255,0.65); text-shadow: 0 1px 3px rgba(0,0,0,0.5); }
 
-.module-card-meta {
-  font-size: 0.75rem;
-  color: rgba(255,255,255,0.65);
-  text-shadow: 0 1px 3px rgba(0,0,0,0.5);
-}
-
-/* Actions module (mode édition) */
 .module-card-actions {
   position: absolute; top: 10px; right: 10px;
   display: none; gap: 5px; z-index: 3;
 }
 .module-card:hover .module-card-actions { display: flex; }
-
 .module-card-actions button {
   background: rgba(0,0,0,0.45); border: 1px solid rgba(255,255,255,0.2);
-  color: white; width: 26px; height: 26px;
-  border-radius: 6px; cursor: pointer; font-size: 0.7rem;
+  color: white; width: 26px; height: 26px; border-radius: 6px;
+  cursor: pointer; font-size: 0.7rem;
   display: flex; align-items: center; justify-content: center;
   transition: all 0.2s; backdrop-filter: blur(4px);
 }
-.module-card-actions button:hover { background: var(--accent); border-color: var(--accent); transform: scale(1.1); }
+.module-card-actions button:hover { background: var(--accent); transform: scale(1.1); }
 
-/* Carte "Ajouter module" */
 .module-card-add {
-  border: 2px dashed var(--glass-border);
-  background: var(--glass);
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  gap: 10px; min-height: 160px;
-  border-radius: var(--radius);
-  cursor: pointer; transition: all 0.2s;
-  color: var(--text-muted);
+  border: 2px dashed var(--glass-border); background: var(--glass);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 10px; min-height: 160px; border-radius: var(--radius);
+  cursor: pointer; transition: all 0.2s; color: var(--text-muted);
 }
 .module-card-add:hover { background: var(--glass-hover); border-color: var(--accent); color: var(--text); }
 .module-card-add span:first-child { font-size: 1.8rem; }
-.module-card-add span:last-child { font-size: 0.82rem; font-weight: 600; letter-spacing: 0.5px; }
+.module-card-add span:last-child { font-size: 0.82rem; font-weight: 600; }
 
 /* ===== TOPBAR ===== */
 .topbar {
@@ -221,35 +174,61 @@ html, body {
   padding: 10px 24px;
   background: var(--glass); backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--glass-border);
-  height: 56px; flex-shrink: 0; gap: 12px;
+  height: 56px; flex-shrink: 0; gap: 12px; position: relative; z-index: 100;
 }
 
-.topbar-left { flex: 1; }
+.topbar-left { flex: 1; display: flex; align-items: center; gap: 8px; }
 .topbar-center { flex: 1; display: flex; justify-content: center; }
 .topbar-right { flex: 1; display: flex; align-items: center; justify-content: flex-end; gap: 12px; }
 
-/* Bouton retour modules */
 .back-btn {
   background: var(--glass); border: 1px solid var(--glass-border);
-  color: var(--text-soft); padding: 5px 14px;
+  color: var(--text-soft); padding: 5px 12px;
   border-radius: 20px; cursor: pointer; font-size: 0.82rem;
-  font-weight: 600; transition: all 0.2s;
-  display: flex; align-items: center; gap: 6px;
-  white-space: nowrap; max-width: 200px;
-  overflow: hidden; text-overflow: ellipsis;
+  font-weight: 600; transition: all 0.2s; white-space: nowrap;
 }
 .back-btn:hover { background: var(--glass-hover); color: var(--text); }
 
-.app-title {
-  font-weight: 800; font-size: 1.05rem;
-  letter-spacing: 2px; color: var(--text); text-transform: uppercase;
+.module-name-label {
+  font-size: 0.82rem; color: var(--text-soft);
+  font-weight: 600; white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis; max-width: 120px;
 }
+
+/* Bouton hamburger — caché sur desktop */
+.sidebar-toggle-btn {
+  display: none;
+  background: var(--glass); border: 1px solid var(--glass-border);
+  color: var(--text-soft); width: 36px; height: 36px;
+  border-radius: var(--radius-sm); cursor: pointer; font-size: 1.1rem;
+  align-items: center; justify-content: center; transition: all 0.2s;
+}
+.sidebar-toggle-btn:hover { background: var(--glass-hover); color: var(--text); }
+
+/* Bouton fermer sidebar — caché sur desktop */
+.sidebar-close-btn {
+  display: none;
+  background: none; border: none; color: var(--text-muted);
+  cursor: pointer; font-size: 1rem; width: 24px; height: 24px;
+  align-items: center; justify-content: center;
+}
+
+/* Bouton retour dans l'éditeur — caché sur desktop */
+.editor-back-btn {
+  display: none;
+  background: var(--glass); border: 1px solid var(--glass-border);
+  color: var(--text-soft); padding: 5px 12px;
+  border-radius: 20px; cursor: pointer; font-size: 0.78rem;
+  font-weight: 600; transition: all 0.2s; white-space: nowrap;
+  flex-shrink: 0;
+}
+.editor-back-btn:hover { background: var(--glass-hover); color: var(--text); }
 
 /* ===== MODE BTN ===== */
 .mode-btn {
   padding: 7px 20px; border-radius: 20px; border: none;
   cursor: pointer; font-weight: 600; font-size: 0.85rem;
-  transition: all 0.3s; letter-spacing: 0.2px; white-space: nowrap;
+  transition: all 0.3s; white-space: nowrap;
 }
 .read-active { background: var(--glass); color: var(--text-soft); border: 1px solid var(--glass-border); }
 .edit-active { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: white; box-shadow: 0 0 20px rgba(99,102,241,0.35); }
@@ -257,21 +236,36 @@ html, body {
 .dashboard-active { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: white; box-shadow: 0 0 20px rgba(99,102,241,0.35); }
 
 /* ===== THÈME SELECTOR ===== */
-.theme-selector { display: flex; align-items: center; gap: 6px; background: var(--glass); padding: 5px 8px; border-radius: 20px; border: 1px solid var(--glass-border); }
+.theme-selector {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--glass); padding: 5px 8px;
+  border-radius: 20px; border: 1px solid var(--glass-border);
+}
 .theme-btn { background: none; border: 2px solid transparent; border-radius: 50%; cursor: pointer; padding: 2px; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
 .theme-btn:hover { transform: scale(1.15); }
 .theme-btn.active { border-color: var(--text-soft); }
 .theme-dot { width: 16px; height: 16px; border-radius: 50%; display: block; }
 
 /* ===== APP BODY ===== */
-.app-body { display: flex; flex: 1; overflow: hidden; }
+.app-body { display: flex; flex: 1; overflow: hidden; position: relative; }
+
+/* ===== OVERLAY SIDEBAR MOBILE ===== */
+.sidebar-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(2px);
+  z-index: 199;
+}
+.sidebar-overlay.active { display: block; }
 
 /* ===== SIDEBAR ===== */
 .sidebar {
   width: 280px; min-width: 220px;
   background: var(--sidebar-bg); backdrop-filter: blur(20px);
   border-right: 1px solid var(--glass-border);
-  display: flex; flex-direction: column; overflow: hidden; transition: all 0.3s;
+  display: flex; flex-direction: column;
+  overflow: hidden; transition: all 0.3s; z-index: 200;
 }
 
 .sidebar-header {
@@ -286,21 +280,19 @@ html, body {
   background: none; border: 1px solid var(--glass-border);
   color: var(--text-soft); width: 24px; height: 24px;
   border-radius: 6px; cursor: pointer; font-size: 1rem;
-  font-weight: 300; line-height: 1; transition: all 0.2s;
+  font-weight: 300; transition: all 0.2s;
   display: flex; align-items: center; justify-content: center;
 }
 .add-folder-btn:hover { background: var(--glass-hover); color: var(--text); border-color: var(--text-soft); }
 
-/* ✅ FIX bouton dashboard "+" bien aligné */
 .add-folder-btn-dashboard {
   display: flex; align-items: center; justify-content: center; gap: 6px;
   background: var(--glass); border: 1px solid var(--glass-border);
   color: var(--text-soft); padding: 6px 14px;
   border-radius: var(--radius-sm); cursor: pointer;
-  font-size: 0.82rem; font-weight: 600;
-  transition: all 0.2s; line-height: 1;
+  font-size: 0.82rem; font-weight: 600; transition: all 0.2s;
 }
-.add-folder-btn-dashboard:hover { background: var(--glass-hover); color: var(--text); border-color: var(--text-soft); }
+.add-folder-btn-dashboard:hover { background: var(--glass-hover); color: var(--text); }
 .add-folder-btn-dashboard span { font-size: 1rem; line-height: 1; display: flex; align-items: center; }
 
 .sidebar-content { overflow-y: auto; flex: 1; padding: 6px; }
@@ -310,24 +302,18 @@ html, body {
 
 /* ===== FOLDER ===== */
 .folder-item { margin-bottom: 1px; }
-
 .folder-header {
   display: flex; align-items: center; gap: 5px;
   padding: 6px 8px; border-radius: var(--radius-sm);
-  cursor: pointer; transition: background 0.18s, box-shadow 0.18s;
-  position: relative; min-height: 32px;
+  cursor: pointer; transition: background 0.18s; position: relative; min-height: 32px;
 }
-.folder-header:hover { background: var(--folder-hover); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.07); }
-
-.folder-arrow { font-size: 0.6rem; color: var(--text-muted); width: 12px; flex-shrink: 0; transition: transform 0.2s; line-height: 1; }
+.folder-header:hover { background: var(--folder-hover); }
+.folder-arrow { font-size: 0.6rem; color: var(--text-muted); width: 12px; flex-shrink: 0; line-height: 1; transition: transform 0.2s; }
 .folder-arrow.open { transform: rotate(90deg); }
-
 .folder-icon { font-size: 1rem; flex-shrink: 0; display: flex; align-items: center; line-height: 1; position: relative; top: 1px; }
-.folder-name { font-size: 0.86rem; font-weight: 500; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text); line-height: 1; }
-
+.folder-name { font-size: 0.86rem; font-weight: 500; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text); }
 .folder-actions, .file-actions { display: none; gap: 3px; flex-shrink: 0; }
 .folder-header:hover .folder-actions, .file-item:hover .file-actions { display: flex; }
-
 .folder-actions button, .file-actions button {
   background: rgba(255,255,255,0.07); border: none;
   color: var(--text-soft); width: 20px; height: 20px;
@@ -335,7 +321,6 @@ html, body {
   transition: all 0.2s; display: flex; align-items: center; justify-content: center;
 }
 .folder-actions button:hover, .file-actions button:hover { background: rgba(99,102,241,0.25); color: white; }
-
 .folder-children { margin-left: 10px; }
 
 /* ===== FILE ITEM ===== */
@@ -346,22 +331,18 @@ html, body {
 }
 .file-item:hover { background: var(--folder-hover); }
 .file-item.active { background: rgba(99,102,241,0.2); border: 1px solid rgba(99,102,241,0.28); }
-
 .file-icon { font-size: 0.78rem; flex-shrink: 0; }
 .file-name { font-size: 0.82rem; flex: 1; color: var(--text-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 /* ===== TAGS ===== */
 .tag-badge { font-size: 0.58rem; padding: 2px 6px; border-radius: 10px; color: white; font-weight: 700; flex-shrink: 0; }
 .file-tag-badges { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 4px; }
-
 .rename-input { background: var(--glass); border: 1px solid rgba(99,102,241,0.4); border-radius: 6px; color: var(--text); padding: 3px 8px; font-size: 0.85rem; flex: 1; outline: none; }
 .rename-input::placeholder { color: var(--text-muted); }
-
 .empty-sidebar { text-align: center; color: var(--text-muted); font-size: 0.82rem; padding: 40px 16px; }
 
 /* ===== MAIN CONTENT ===== */
 .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-
 .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: var(--text-muted); gap: 14px; }
 .empty-icon { font-size: 3rem; }
 .empty-state h2 { font-size: 1.2rem; color: var(--text-soft); }
@@ -376,7 +357,6 @@ html, body {
 .editor-area { display: flex; flex: 1; gap: 0; overflow: hidden; position: relative; min-height: 0; }
 
 #editor { flex: 1; display: flex; flex-direction: column; border-radius: var(--radius); overflow: hidden; background: var(--glass); backdrop-filter: blur(10px); border: 1px solid var(--glass-border); min-height: 0; min-width: 0; }
-
 .ql-toolbar { background: rgba(255,255,255,0.04) !important; border: none !important; border-bottom: 1px solid var(--glass-border) !important; flex-shrink: 0; }
 .ql-toolbar .ql-stroke { stroke: var(--text-soft) !important; }
 .ql-toolbar .ql-fill { fill: var(--text-soft) !important; }
@@ -390,23 +370,17 @@ html, body {
 /* ===== PANNEAU IMAGE ===== */
 .image-panel { display: flex; flex-direction: row; align-items: stretch; position: relative; transition: width 0.3s ease; width: 220px; flex-shrink: 0; }
 .image-panel.collapsed { width: 28px; }
-
 .image-panel-toggle { position: absolute; left: -14px; top: 50%; transform: translateY(-50%); width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--glass-border); background: var(--glass); backdrop-filter: blur(10px); color: var(--text-soft); cursor: pointer; font-size: 0.65rem; display: flex; align-items: center; justify-content: center; transition: all 0.2s; z-index: 10; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
 .image-panel-toggle:hover { background: var(--glass-hover); color: var(--text); transform: translateY(-50%) scale(1.1); }
-
 .image-panel-content { flex: 1; display: flex; flex-direction: column; gap: 10px; padding: 14px 10px; background: var(--sidebar-bg); backdrop-filter: blur(10px); border-left: 1px solid var(--glass-border); border-radius: 0 var(--radius) var(--radius) 0; overflow-y: auto; overflow-x: hidden; transition: opacity 0.2s, visibility 0.2s; }
 .image-panel.collapsed .image-panel-content { opacity: 0; visibility: hidden; pointer-events: none; }
-
 .image-panel-header { display: flex; align-items: center; justify-content: space-between; }
 .image-panel-title { font-size: 0.75rem; font-weight: 800; color: var(--text); text-transform: uppercase; letter-spacing: 1.5px; }
 .image-count-badge { font-size: 0.7rem; padding: 2px 8px; border-radius: 10px; background: var(--glass); border: 1px solid var(--glass-border); color: var(--text-soft); }
-
 .image-upload-label { display: flex; align-items: center; justify-content: center; padding: 8px 6px; border-radius: var(--radius-sm); border: 1px dashed var(--glass-border); background: var(--glass); color: var(--text-soft); font-size: 0.78rem; font-weight: 600; cursor: pointer; transition: all 0.2s; text-align: center; }
 .image-upload-label:hover { background: var(--glass-hover); border-color: var(--accent); color: var(--text); }
 .image-upload-hint { font-size: 0.65rem; color: var(--text-muted); text-align: center; line-height: 1.4; }
-
 .image-list { display: flex; flex-direction: column; gap: 8px; min-height: 40px; }
-
 .image-item { position: relative; border-radius: var(--radius-sm); overflow: hidden; border: 1px solid var(--glass-border); cursor: grab; transition: all 0.2s; background: var(--glass); flex-shrink: 0; }
 .image-item:active { cursor: grabbing; }
 .image-item:hover { border-color: var(--accent); box-shadow: 0 4px 16px rgba(99,102,241,0.25); transform: translateY(-1px); }
@@ -414,14 +388,12 @@ html, body {
 .image-item.drag-over { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent); }
 .image-item img { width: 100%; height: 110px; object-fit: cover; display: block; pointer-events: none; transition: transform 0.2s; }
 .image-item:hover img { transform: scale(1.03); }
-
 .image-item-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0); display: flex; align-items: center; justify-content: center; gap: 8px; transition: background 0.2s; }
 .image-item:hover .image-item-overlay { background: rgba(0,0,0,0.42); }
 .image-item-overlay button { opacity: 0; transform: scale(0.8); background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25); color: white; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-size: 0.8rem; display: flex; align-items: center; justify-content: center; transition: all 0.18s; backdrop-filter: blur(4px); }
 .image-item:hover .image-item-overlay button { opacity: 1; transform: scale(1); }
 .image-item-overlay button:hover { background: var(--accent); border-color: var(--accent); transform: scale(1.15) !important; }
-
-.drag-handle { position: absolute; top: 5px; left: 5px; font-size: 0.65rem; color: rgba(255,255,255,0.6); cursor: grab; background: rgba(0,0,0,0.35); padding: 2px 4px; border-radius: 4px; line-height: 1; opacity: 0; transition: opacity 0.2s; }
+.drag-handle { position: absolute; top: 5px; left: 5px; font-size: 0.65rem; color: rgba(255,255,255,0.6); cursor: grab; background: rgba(0,0,0,0.35); padding: 2px 4px; border-radius: 4px; opacity: 0; transition: opacity 0.2s; }
 .image-item:hover .drag-handle { opacity: 1; }
 .image-number { position: absolute; top: 5px; right: 5px; font-size: 0.6rem; background: rgba(0,0,0,0.5); color: white; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; }
 
@@ -429,9 +401,7 @@ html, body {
 .dashboard-view { flex: 1; display: flex; flex-direction: column; overflow-y: auto; padding: 28px; gap: 20px; }
 .dashboard-header { display: flex; align-items: center; justify-content: space-between; }
 .dashboard-header h2 { font-size: 1.3rem; font-weight: 700; color: var(--text); }
-
 .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
-
 .dashboard-card { background: var(--glass); border: 1px solid var(--glass-border); border-radius: var(--radius); padding: 20px; cursor: pointer; transition: all 0.22s; backdrop-filter: blur(10px); position: relative; overflow: hidden; }
 .dashboard-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--card-color, var(--accent)); border-radius: var(--radius) var(--radius) 0 0; }
 .dashboard-card:hover { background: var(--folder-hover); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
@@ -443,22 +413,17 @@ html, body {
 /* ===== MODALS ===== */
 .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.60); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 1000; animation: fadeIn 0.2s ease; }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
 .modal-box { background: var(--modal-bg); border: 1px solid var(--glass-border); border-radius: 20px; padding: 36px; max-width: 460px; width: 90%; text-align: center; box-shadow: 0 30px 60px rgba(0,0,0,0.5); animation: slideUp 0.25s ease; }
 @keyframes slideUp { from { transform: translateY(16px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-
 .modal-icon { font-size: 2.2rem; margin-bottom: 14px; }
 .modal-box h2 { font-size: 1.2rem; margin-bottom: 14px; color: var(--text); }
 .modal-box h3 { font-size: 1.05rem; margin-bottom: 18px; color: var(--text); }
-.modal-box p  { font-size: 0.88rem; color: var(--text-soft); line-height: 1.75; }
-
-.modal-actions { display: flex; gap: 10px; justify-content: center; margin-top: 22px; }
-
+.modal-box p { font-size: 0.88rem; color: var(--text-soft); line-height: 1.75; }
+.modal-actions { display: flex; gap: 10px; justify-content: center; margin-top: 22px; flex-wrap: wrap; }
 .btn-cancel { padding: 9px 22px; border-radius: var(--radius-sm); border: 1px solid var(--glass-border); background: transparent; color: var(--text-soft); cursor: pointer; font-size: 0.86rem; transition: all 0.2s; }
 .btn-cancel:hover { background: var(--glass-hover); color: var(--text); }
 .btn-confirm { padding: 9px 22px; border-radius: var(--radius-sm); border: none; background: linear-gradient(135deg, var(--accent), var(--accent2)); color: white; cursor: pointer; font-weight: 600; font-size: 0.86rem; transition: all 0.2s; }
 .btn-confirm:hover { transform: translateY(-1px); filter: brightness(1.1); }
-
 .props-box { text-align: left; position: relative; }
 .props-close { position: absolute; top: 14px; right: 14px; background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1rem; }
 .props-close:hover { color: var(--text); }
@@ -466,12 +431,10 @@ html, body {
 .props-table td { padding: 9px 10px; font-size: 0.86rem; border-bottom: 1px solid var(--glass-border); }
 .props-table td:first-child { color: var(--text-muted); font-weight: 600; width: 110px; }
 .props-table td:last-child { color: var(--text); }
-
 .color-box { max-width: 320px; }
 .color-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin: 10px 0; }
 .color-swatch { width: 36px; height: 36px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: all 0.2s; margin: auto; }
 .color-swatch:hover { transform: scale(1.18); border-color: white; }
-
 .tag-box { max-width: 380px; text-align: left; }
 .tag-input-row { display: flex; flex-direction: column; gap: 10px; }
 .tag-colors { display: flex; gap: 8px; flex-wrap: wrap; }
@@ -482,7 +445,6 @@ html, body {
 .tag-item { display: flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 12px; font-size: 0.78rem; font-weight: 600; color: white; }
 .tag-item button { background: none; border: none; color: rgba(255,255,255,0.7); cursor: pointer; font-size: 0.72rem; }
 .tag-item button:hover { color: white; }
-
 .rgpd-box { max-width: 500px; }
 .rgpd-info { display: flex; flex-direction: column; gap: 6px; margin-top: 18px; background: var(--glass); border: 1px solid var(--glass-border); border-radius: var(--radius-sm); padding: 14px 16px; text-align: left; font-size: 0.8rem; color: var(--text-soft); }
 .rgpd-info a { color: var(--accent); text-decoration: none; }
@@ -494,9 +456,132 @@ html, body {
 .lightbox-close:hover { background: rgba(239,68,68,0.5); transform: scale(1.1); }
 .lightbox-zoom-controls { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 10px 20px; border-bottom: 1px solid rgba(255,255,255,0.07); flex-shrink: 0; }
 .lightbox-zoom-controls button { background: var(--glass); border: 1px solid var(--glass-border); color: var(--text); width: 32px; height: 32px; border-radius: var(--radius-sm); cursor: pointer; font-size: 1rem; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
-.lightbox-zoom-controls button:hover { background: var(--accent); border-color: var(--accent); color: white; transform: scale(1.08); }
+.lightbox-zoom-controls button:hover { background: var(--accent); border-color: var(--accent); color: white; }
 #zoom-level { font-size: 0.82rem; color: var(--text-soft); min-width: 44px; text-align: center; font-weight: 600; }
 .lightbox-img-wrapper { flex: 1; overflow: hidden; display: flex; align-items: center; justify-content: center; cursor: zoom-in; padding: 16px; position: relative; }
 .lightbox-img-wrapper.zoomed { cursor: grab; }
 .lightbox-img-wrapper.zoomed:active { cursor: grabbing; }
 #lightbox-img { max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 8px; transition: transform 0.15s ease; transform-origin: center center; user-select: none; }
+
+/* ===== BARRE NAV MOBILE (cachée sur desktop) ===== */
+.mobile-nav { display: none; }
+
+/* ================================================ */
+/* ===== 📱 RESPONSIVE MOBILE (≤ 768px) ===== */
+/* ================================================ */
+@media (max-width: 768px) {
+
+  /* ── Écran modules ── */
+  .modules-topbar {
+    padding: 14px 16px;
+    flex-wrap: wrap;
+    gap: 10px;
+    height: auto;
+  }
+  .app-title-anim { font-size: 1.6rem; letter-spacing: 2px; }
+  .modules-topbar-right { gap: 8px; flex-wrap: wrap; }
+  .modules-topbar-right .theme-selector { display: none; } /* masqué sur mobile */
+  .modules-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 14px; padding: 16px;
+  }
+  .module-card { min-height: 130px; }
+  .module-card-title { font-size: 0.85rem; letter-spacing: 1px; }
+
+  /* ── Topbar principale ── */
+  .topbar { padding: 8px 14px; height: 52px; }
+  .topbar-right .theme-selector { display: none; }
+  .topbar-right #dashboard-btn { display: none; } /* géré par nav bar */
+  .back-btn { padding: 4px 10px; font-size: 0.75rem; }
+  .sidebar-toggle-btn { display: flex; }
+
+  /* ── App body ── */
+  .app-body { padding-bottom: var(--mobile-nav-h); }
+
+  /* ── Sidebar en drawer ── */
+  .sidebar {
+    position: fixed;
+    top: 52px; left: 0; bottom: var(--mobile-nav-h);
+    width: 85vw; max-width: 320px;
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+    z-index: 200;
+    box-shadow: 4px 0 24px rgba(0,0,0,0.4);
+  }
+  .sidebar.open {
+    transform: translateX(0);
+  }
+  .sidebar-close-btn { display: flex; }
+
+  /* ── Éditeur ── */
+  .editor-wrapper { padding: 14px 14px; gap: 10px; }
+  .editor-header h2 { font-size: 1.05rem; }
+  .editor-back-btn { display: flex; }
+
+  /* Panneau image masqué sur mobile (trop petit) */
+  .image-panel { display: none; }
+
+  /* ── Dashboard ── */
+  .dashboard-view { padding: 14px; }
+  .dashboard-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .dashboard-header h2 { font-size: 1.1rem; }
+
+  /* ── Modals ── */
+  .modal-box { padding: 24px 18px; border-radius: 16px; }
+  .modal-box h2 { font-size: 1rem; }
+  .modal-actions { flex-direction: column; }
+  .btn-cancel, .btn-confirm { width: 100%; }
+
+  /* ── Lightbox ── */
+  .lightbox-box { width: 100vw; height: 100vh; border-radius: 0; }
+
+  /* ── Barre de nav mobile ── */
+  .mobile-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: var(--mobile-nav-h);
+    background: var(--modal-bg);
+    backdrop-filter: blur(20px);
+    border-top: 1px solid var(--glass-border);
+    z-index: 300;
+  }
+
+  .mobile-nav-btn {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 3px;
+    background: none; border: none; cursor: pointer;
+    color: var(--text-muted); font-size: 0.62rem; font-weight: 600;
+    transition: all 0.2s; padding: 8px 4px;
+    letter-spacing: 0.3px;
+  }
+  .mobile-nav-btn span:first-child { font-size: 1.3rem; line-height: 1; }
+  .mobile-nav-btn:hover, .mobile-nav-btn.active {
+    color: var(--accent);
+  }
+  .mobile-nav-btn.active span:first-child {
+    filter: drop-shadow(0 0 6px var(--accent));
+  }
+
+  /* Actions dossier/fichier toujours visibles sur mobile */
+  .folder-actions, .file-actions { display: flex; }
+
+  /* Taille des boutons d'action plus grands sur mobile */
+  .folder-actions button, .file-actions button {
+    width: 26px; height: 26px; font-size: 0.75rem;
+  }
+
+  /* Folder/file items plus hauts pour le touch */
+  .folder-header { min-height: 42px; padding: 8px 8px; }
+  .file-item { min-height: 38px; padding: 8px 8px; }
+  .folder-name { font-size: 0.92rem; }
+  .file-name { font-size: 0.88rem; }
+}
+
+/* ── Très petits écrans ── */
+@media (max-width: 380px) {
+  .modules-grid { grid-template-columns: 1fr; }
+  .dashboard-grid { grid-template-columns: 1fr; }
+  .app-title-anim { font-size: 1.3rem; }
+  .mode-btn { padding: 6px 12px; font-size: 0.78rem; }
+}
