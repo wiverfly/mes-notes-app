@@ -4,7 +4,7 @@ import {
   deleteDoc, doc, updateDoc, serverTimestamp, query, orderBy
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// ⚠️ VOS CLÉS FIREBASE
+// ===== FIREBASE CONFIG =====
 const firebaseConfig = {
   apiKey: "AIzaSyByGzXhK9ub9ThcacauTm7ROYP1fBpE1l0",
   authDomain: "mes-notes-app-8618f.firebaseapp.com",
@@ -39,6 +39,16 @@ let currentTagTargetType = null;
 let selectedTagColor = TAG_COLORS[0];
 let colorTargetId = null;
 let isDashboard = false;
+
+// ===== STATE IMAGES =====
+let currentImages = [];
+let dragSrcIndex = null;
+
+// ===== STATE LIGHTBOX =====
+let zoomLevel = 1;
+let isDraggingLightbox = false;
+let lightboxStartX = 0, lightboxStartY = 0;
+let lightboxTranslateX = 0, lightboxTranslateY = 0;
 
 // ===== QUILL =====
 function initQuill() {
@@ -80,7 +90,6 @@ document.querySelectorAll('.theme-btn').forEach(btn => {
   });
 });
 
-// Restaurer le thème sauvegardé
 const savedTheme = localStorage.getItem('theme');
 if (savedTheme) {
   document.body.className = savedTheme === 'violet' ? '' : `theme-${savedTheme}`;
@@ -119,6 +128,16 @@ function setEditMode(value) {
   badge?.classList.toggle('hidden', value);
   addBtn.classList.toggle('hidden', !value);
   dashAddBtn.classList.toggle('hidden', !value);
+
+  // Activer/désactiver l'import d'images selon le mode
+  const uploadLabel = document.getElementById('image-upload-label');
+  if (uploadLabel) {
+    if (value) {
+      uploadLabel.classList.remove('disabled');
+    } else {
+      uploadLabel.classList.add('disabled');
+    }
+  }
 
   if (quill) quill.enable(value);
   renderSidebar();
@@ -207,7 +226,6 @@ function renderFolder(folder, depth) {
   arrow.className = 'folder-arrow';
   arrow.textContent = '▶';
 
-  // ✅ ICÔNE DOSSIER SVG QUI CHANGE DE COULEUR
   const icon = document.createElement('span');
   icon.className = 'folder-icon';
   icon.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="${folder.color || '#6366f1'}" xmlns="http://www.w3.org/2000/svg">
@@ -223,7 +241,6 @@ function renderFolder(folder, depth) {
   header.appendChild(icon);
   header.appendChild(name);
 
-  // Tags
   (folder.tags || []).forEach(tag => {
     const badge = document.createElement('span');
     badge.className = 'tag-badge';
@@ -232,7 +249,6 @@ function renderFolder(folder, depth) {
     header.appendChild(badge);
   });
 
-  // Actions
   if (isEditMode) {
     const actions = document.createElement('div');
     actions.className = 'folder-actions';
@@ -243,20 +259,19 @@ function renderFolder(folder, depth) {
     }));
     actions.appendChild(makeActionBtn('◉', 'Couleur', () => openColorPicker(folder.id)));
     actions.appendChild(makeActionBtn('⊞', 'Étiquettes', () => openTagManager(folder.id, 'folder')));
-    actions.appendChild(makeActionBtn('＋', 'Nouveau fichier', async () => {
-  const n = prompt('Nom du fichier :');
-  if (n?.trim()) {
-    // Affichage du message RGPD avant création
-    showRgpdModal(async () => {
-      await addDoc(collection(db, 'files'), {
-        name: n.trim(), folderId: folder.id,
-        content: '', tags: [],
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(), size: 0
-      });
-    });
-  }
-}));
+    actions.appendChild(makeActionBtn('+', 'Nouveau fichier', async () => {
+      const n = prompt('Nom du fichier :');
+      if (n?.trim()) {
+        showRgpdModal(async () => {
+          await addDoc(collection(db, 'files'), {
+            name: n.trim(), folderId: folder.id,
+            content: '', tags: [], images: [],
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(), size: 0
+          });
+        });
+      }
+    }));
     actions.appendChild(makeActionBtn('⊕', 'Sous-dossier', async () => {
       const n = prompt('Nom du sous-dossier :');
       if (n?.trim()) {
@@ -412,6 +427,17 @@ function openFile(file) {
   if (!quill) initQuill();
   quill.root.innerHTML = file.content || '';
   quill.enable(isEditMode);
+
+  // Chargement des images
+  currentImages = (file.images || []);
+  renderImagePanel();
+
+  // Désactiver l'import si mode lecture
+  const uploadLabel = document.getElementById('image-upload-label');
+  if (uploadLabel) {
+    uploadLabel.classList.toggle('disabled', !isEditMode);
+  }
+
   renderSidebar();
 }
 
@@ -431,6 +457,8 @@ function updateEditorHeader(file) {
 
 function closeEditor() {
   selectedFileId = null;
+  currentImages = [];
+  renderImagePanel();
   document.getElementById('empty-state').classList.remove('hidden');
   document.getElementById('editor-wrapper').classList.add('hidden');
 }
@@ -540,51 +568,8 @@ document.getElementById('tag-cancel').addEventListener('click', () => {
   document.getElementById('tag-overlay').classList.add('hidden');
 });
 
-// ===== UTILITAIRES =====
-function makeActionBtn(symbol, title, onClick) {
-  const btn = document.createElement('button');
-  btn.textContent = symbol;
-  btn.title = title;
-  btn.addEventListener('click', (e) => { e.stopPropagation(); onClick(); });
-  return btn;
-}
-
-function formatSize(bytes) {
-  if (!bytes) return '0 B';
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} Ko`;
-  return `${(bytes / (1024 * 1024)).toFixed(2)} Mo`;
-}
-
-function formatDate(ts) {
-  if (!ts) return 'Inconnue';
-  const d = ts.toDate ? ts.toDate() : new Date(ts);
-  return d.toLocaleString('fr-FR');
-}
-// ===== MODAL RGPD =====
-let rgpdCallback = null;
-
-function showRgpdModal(callback) {
-  rgpdCallback = callback;
-  document.getElementById('rgpd-overlay').classList.remove('hidden');
-}
-
-document.getElementById('rgpd-cancel').addEventListener('click', () => {
-  document.getElementById('rgpd-overlay').classList.add('hidden');
-  rgpdCallback = null;
-});
-
-document.getElementById('rgpd-confirm').addEventListener('click', async () => {
-  document.getElementById('rgpd-overlay').classList.add('hidden');
-  if (rgpdCallback) await rgpdCallback();
-  rgpdCallback = null;
-});
 // ===== PANNEAU IMAGES =====
 
-let currentImages = []; // [{id, base64, name}]
-let dragSrcIndex = null;
-
-// --- Toggle panneau ---
 document.getElementById('image-panel-toggle').addEventListener('click', () => {
   const panel = document.getElementById('image-panel');
   const arrow = document.getElementById('panel-arrow');
@@ -592,8 +577,8 @@ document.getElementById('image-panel-toggle').addEventListener('click', () => {
   arrow.textContent = isCollapsed ? '◀' : '▶';
 });
 
-// --- Import image ---
 document.getElementById('image-upload-input').addEventListener('change', async (e) => {
+  if (!isEditMode) return;
   const files = Array.from(e.target.files);
   const remaining = 5 - currentImages.length;
 
@@ -619,7 +604,7 @@ document.getElementById('image-upload-input').addEventListener('change', async (
 
   e.target.value = '';
   renderImagePanel();
-  saveImages();
+  await saveImages();
 });
 
 function fileToBase64(file) {
@@ -630,20 +615,20 @@ function fileToBase64(file) {
   });
 }
 
-// --- Rendu de la liste ---
 function renderImagePanel() {
   const list = document.getElementById('image-list');
   const badge = document.getElementById('image-count-badge');
   const uploadLabel = document.getElementById('image-upload-label');
 
+  if (!list || !badge) return;
+
   list.innerHTML = '';
   badge.textContent = `${currentImages.length} / 5`;
 
-  // Désactiver l'import si limite atteinte
-  if (currentImages.length >= 5) {
-    uploadLabel.classList.add('disabled');
+  if (currentImages.length >= 5 || !isEditMode) {
+    uploadLabel?.classList.add('disabled');
   } else {
-    uploadLabel.classList.remove('disabled');
+    uploadLabel?.classList.remove('disabled');
   }
 
   currentImages.forEach((img, index) => {
@@ -658,12 +643,13 @@ function renderImagePanel() {
       <img src="${img.base64}" alt="${img.name}" />
       <div class="image-item-overlay">
         <button class="img-btn-view" title="Agrandir">🔍</button>
-        <button class="img-btn-delete" title="Supprimer">🗑</button>
+        ${isEditMode ? `<button class="img-btn-delete" title="Supprimer">🗑</button>` : ''}
       </div>
     `;
 
-    // --- Drag & Drop ---
+    // Drag & Drop
     item.addEventListener('dragstart', (e) => {
+      if (!isEditMode) return;
       dragSrcIndex = index;
       item.classList.add('dragging');
       e.dataTransfer.effectAllowed = 'move';
@@ -675,39 +661,42 @@ function renderImagePanel() {
     });
 
     item.addEventListener('dragover', (e) => {
+      if (!isEditMode) return;
       e.preventDefault();
       e.dataTransfer.dropEffect = 'move';
       document.querySelectorAll('.image-item').forEach(el => el.classList.remove('drag-over'));
       item.classList.add('drag-over');
     });
 
-    item.addEventListener('drop', (e) => {
+    item.addEventListener('drop', async (e) => {
       e.preventDefault();
-      if (dragSrcIndex === null || dragSrcIndex === index) return;
+      if (!isEditMode || dragSrcIndex === null || dragSrcIndex === index) return;
       const moved = currentImages.splice(dragSrcIndex, 1)[0];
       currentImages.splice(index, 0, moved);
       dragSrcIndex = null;
       renderImagePanel();
-      saveImages();
+      await saveImages();
     });
 
-    // --- Voir en grand ---
+    // Voir en grand
     item.querySelector('.img-btn-view').addEventListener('click', (e) => {
       e.stopPropagation();
       openLightbox(img.base64);
     });
 
-    // --- Supprimer ---
-    item.querySelector('.img-btn-delete').addEventListener('click', (e) => {
-      e.stopPropagation();
-      if (confirm(`Supprimer l'image "${img.name}" ?`)) {
-        currentImages.splice(index, 1);
-        renderImagePanel();
-        saveImages();
-      }
-    });
+    // Supprimer (mode édition seulement)
+    if (isEditMode) {
+      item.querySelector('.img-btn-delete').addEventListener('click', async (e) => {
+        e.stopPropagation();
+        if (confirm(`Supprimer l'image "${img.name}" ?`)) {
+          currentImages.splice(index, 1);
+          renderImagePanel();
+          await saveImages();
+        }
+      });
+    }
 
-    // --- Clic direct sur image → lightbox ---
+    // Clic direct → lightbox
     item.addEventListener('click', (e) => {
       if (e.target.closest('.image-item-overlay')) return;
       openLightbox(img.base64);
@@ -717,7 +706,6 @@ function renderImagePanel() {
   });
 }
 
-// --- Sauvegarde dans Firestore ---
 async function saveImages() {
   if (!selectedFileId) return;
   await updateDoc(doc(db, 'files', selectedFileId), {
@@ -725,37 +713,7 @@ async function saveImages() {
   });
 }
 
-// --- Chargement au clic sur fichier (modifier openFile) ---
-// Dans votre fonction openFile existante, ajoutez à la fin :
-//
-//   currentImages = (file.images || []);
-//   renderImagePanel();
-//
-// Exemple de remplacement complet de openFile :
-
-function openFile(file) {
-  selectedFileId = file.id;
-  document.getElementById('empty-state').classList.add('hidden');
-  document.getElementById('editor-wrapper').classList.remove('hidden');
-  updateEditorHeader(file);
-  if (!quill) initQuill();
-  quill.root.innerHTML = file.content || '';
-  quill.enable(isEditMode);
-
-  // ↓ Chargement des images
-  currentImages = (file.images || []);
-  renderImagePanel();
-
-  renderSidebar();
-}
-
 // ===== LIGHTBOX =====
-
-let zoomLevel = 1;
-let isDraggingLightbox = false;
-let lightboxStartX = 0, lightboxStartY = 0;
-let lightboxTranslateX = 0, lightboxTranslateY = 0;
-
 function openLightbox(src) {
   zoomLevel = 1;
   lightboxTranslateX = 0;
@@ -808,8 +766,8 @@ document.getElementById('lightbox-img-wrapper').addEventListener('wheel', (e) =>
 }, { passive: false });
 
 // Glissement image zoomée
-const wrapper = document.getElementById('lightbox-img-wrapper');
-wrapper.addEventListener('mousedown', (e) => {
+const lbWrapper = document.getElementById('lightbox-img-wrapper');
+lbWrapper.addEventListener('mousedown', (e) => {
   if (zoomLevel <= 1) return;
   isDraggingLightbox = true;
   lightboxStartX = e.clientX - lightboxTranslateX;
@@ -825,9 +783,50 @@ window.addEventListener('mousemove', (e) => {
 
 window.addEventListener('mouseup', () => { isDraggingLightbox = false; });
 
-// Fermer lightbox en cliquant en dehors
+// Fermer en cliquant en dehors
 document.getElementById('lightbox-overlay').addEventListener('click', (e) => {
   if (e.target === document.getElementById('lightbox-overlay')) {
     document.getElementById('lightbox-overlay').classList.add('hidden');
   }
+});
+
+// ===== UTILITAIRES =====
+function makeActionBtn(symbol, title, onClick) {
+  const btn = document.createElement('button');
+  btn.textContent = symbol;
+  btn.title = title;
+  btn.addEventListener('click', (e) => { e.stopPropagation(); onClick(); });
+  return btn;
+}
+
+function formatSize(bytes) {
+  if (!bytes) return '0 B';
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} Ko`;
+  return `${(bytes / (1024 * 1024)).toFixed(2)} Mo`;
+}
+
+function formatDate(ts) {
+  if (!ts) return 'Inconnue';
+  const d = ts.toDate ? ts.toDate() : new Date(ts);
+  return d.toLocaleString('fr-FR');
+}
+
+// ===== MODAL RGPD =====
+let rgpdCallback = null;
+
+function showRgpdModal(callback) {
+  rgpdCallback = callback;
+  document.getElementById('rgpd-overlay').classList.remove('hidden');
+}
+
+document.getElementById('rgpd-cancel').addEventListener('click', () => {
+  document.getElementById('rgpd-overlay').classList.add('hidden');
+  rgpdCallback = null;
+});
+
+document.getElementById('rgpd-confirm').addEventListener('click', async () => {
+  document.getElementById('rgpd-overlay').classList.add('hidden');
+  if (rgpdCallback) await rgpdCallback();
+  rgpdCallback = null;
 });
