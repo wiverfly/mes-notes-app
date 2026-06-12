@@ -492,19 +492,6 @@ function renderFolder(folder, depth, openByDefault = false) {
       openColorPickerGeneric();
     }));
     actions.appendChild(makeActionBtn('⊞', 'Étiquettes', () => openTagManager(folder.id, 'folder')));
-    actions.appendChild(makeActionBtn('+', 'Nouveau fichier', async () => {
-      const n = prompt('Nom du fichier :');
-      if (n?.trim()) {
-        showRgpdModal(async () => {
-          await addDoc(collection(db, 'files'), {
-            name: n.trim(), folderId: folder.id,
-            content: '', tags: [], images: [],
-            createdAt: serverTimestamp(), updatedAt: serverTimestamp(), size: 0
-          });
-          openFolderInSidebar(folder.id);
-        });
-      }
-    }));
     actions.appendChild(makeActionBtn('⊕', 'Sous-dossier', async () => {
       const n = prompt('Nom du sous-dossier :');
       if (n?.trim()) {
@@ -521,6 +508,7 @@ function renderFolder(folder, depth, openByDefault = false) {
       if (confirm(`Supprimer "${folder.name}" ?`))
         await deleteDoc(doc(db, 'folders', folder.id));
     }));
+
     header.appendChild(actions);
   }
 
@@ -539,8 +527,39 @@ function renderFolder(folder, depth, openByDefault = false) {
 
   folders.filter(f => f.parentId === folder.id)
     .forEach(sub => children.appendChild(renderFolder(sub, depth + 1)));
+
   files.filter(f => f.folderId === folder.id)
     .forEach(file => children.appendChild(renderFile(file, depth + 1)));
+
+  // ✅ Bouton "Nouveau fichier" EN DESSOUS des fichiers dans la sidebar
+  if (isEditMode) {
+    const addFileRow = document.createElement('div');
+    addFileRow.className = 'sidebar-add-file-row';
+    addFileRow.style.paddingLeft = `${8 + (depth + 1) * 14}px`;
+
+    const addFileBtn = document.createElement('button');
+    addFileBtn.className = 'sidebar-add-file-btn';
+    addFileBtn.innerHTML = `<span>＋</span> Nouveau fichier`;
+
+    addFileBtn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const n = prompt('Nom du fichier :');
+      if (n?.trim()) {
+        showRgpdModal(async () => {
+          await addDoc(collection(db, 'files'), {
+            name: n.trim(), folderId: folder.id,
+            content: '', tags: [], images: [],
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(), size: 0
+          });
+          openFolderInSidebar(folder.id);
+        });
+      }
+    });
+
+    addFileRow.appendChild(addFileBtn);
+    children.appendChild(addFileRow);
+  }
 
   wrap.appendChild(children);
 
@@ -644,21 +663,97 @@ function renderDashboard() {
   }
 
   rootFolders.forEach(folder => {
-    const fileCount = files.filter(f => f.folderId === folder.id).length;
-    const subCount  = folders.filter(f => f.parentId === folder.id).length;
+    const fileCount  = files.filter(f => f.folderId === folder.id).length;
+    const subCount   = folders.filter(f => f.parentId === folder.id).length;
+    const folderFiles = files.filter(f => f.folderId === folder.id);
+
     const card = document.createElement('div');
     card.className = 'dashboard-card';
     card.style.setProperty('--card-color', folder.color || '#6366f1');
+
+    // ✅ Bouton créer fichier dans la carte (mode édition)
+    const addFileBtn = isEditMode ? `
+      <button class="card-add-file-btn" data-folder-id="${folder.id}" title="Nouveau fichier">
+        ＋ Nouveau fichier
+      </button>
+    ` : '';
+
+    // ✅ Liste des fichiers dans la carte
+    const filesList = folderFiles.length > 0 ? `
+      <div class="card-files-list">
+        ${folderFiles.map(f => `
+          <div class="card-file-item" data-file-id="${f.id}">
+            <span class="card-file-icon">📄</span>
+            <span class="card-file-name">${f.name}</span>
+          </div>
+        `).join('')}
+      </div>
+    ` : '';
+
     card.innerHTML = `
-      <span class="card-icon">
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="${folder.color || '#6366f1'}">
-          <path d="M10 4H4C2.9 4 2 4.9 2 6V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V8C22 6.9 21.1 6 20 6H12L10 4Z"/>
-        </svg>
-      </span>
-      <div class="card-name">${folder.name}</div>
-      <div class="card-meta">${fileCount} fichier${fileCount > 1 ? 's' : ''}${subCount > 0 ? ` · ${subCount} sous-dossier${subCount > 1 ? 's' : ''}` : ''}</div>
-      <div class="card-tags">${(folder.tags || []).map(t => `<span class="tag-badge" style="background:${t.color}">${t.label}</span>`).join('')}</div>
+      <div class="card-header-row">
+        <span class="card-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="${folder.color || '#6366f1'}">
+            <path d="M10 4H4C2.9 4 2 4.9 2 6V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V8C22 6.9 21.1 6 20 6H12L10 4Z"/>
+          </svg>
+        </span>
+        <div class="card-header-info">
+          <div class="card-name">${folder.name}</div>
+          <div class="card-meta">
+            ${fileCount} fichier${fileCount > 1 ? 's' : ''}
+            ${subCount > 0 ? ` · ${subCount} sous-dossier${subCount > 1 ? 's' : ''}` : ''}
+          </div>
+        </div>
+      </div>
+      <div class="card-tags">
+        ${(folder.tags || []).map(t =>
+          `<span class="tag-badge" style="background:${t.color}">${t.label}</span>`
+        ).join('')}
+      </div>
+      ${filesList}
+      ${addFileBtn}
     `;
+
+    // ✅ Clic sur le bouton créer fichier
+    const addBtn = card.querySelector('.card-add-file-btn');
+    if (addBtn) {
+      addBtn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const n = prompt('Nom du fichier :');
+        if (n?.trim()) {
+          showRgpdModal(async () => {
+            await addDoc(collection(db, 'files'), {
+              name: n.trim(), folderId: folder.id,
+              content: '', tags: [], images: [],
+              createdAt: serverTimestamp(),
+              updatedAt: serverTimestamp(), size: 0
+            });
+          });
+        }
+      });
+    }
+
+    // ✅ Clic sur un fichier dans la carte → ouvrir directement
+    card.querySelectorAll('.card-file-item').forEach(fileEl => {
+      fileEl.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const fileId = fileEl.dataset.fileId;
+        const file   = files.find(f => f.id === fileId);
+        if (!file) return;
+        // Basculer en vue classique et ouvrir le fichier
+        isDashboard = false;
+        document.getElementById('dashboard-btn').className = 'mode-btn dashboard-inactive';
+        const from = document.getElementById('dashboard-view');
+        const to   = document.getElementById('main-content');
+        document.getElementById('sidebar').classList.remove('hidden');
+        transitionTo(from, to, 'fade').then(() => {
+          openFile(file);
+        });
+        setMobileNavActive('files');
+      });
+    });
+
+    // Clic sur la carte → vue classique
     card.addEventListener('click', () => {
       isDashboard = false;
       document.getElementById('dashboard-btn').className = 'mode-btn dashboard-inactive';
@@ -669,10 +764,11 @@ function renderDashboard() {
       setMobileNavActive('files');
       renderSidebar();
     });
+
     grid.appendChild(card);
   });
 
-  // ✅ Animation des cartes dashboard
+  // Animation des cartes
   setTimeout(() => animateCards('.dashboard-card', 'dashboard-card-anim', 55), 10);
 }
 
