@@ -3,7 +3,65 @@ import {
   getFirestore, collection, onSnapshot, addDoc,
   deleteDoc, doc, updateDoc, serverTimestamp, query, orderBy
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+// ===================================================
+// ===== SYSTÈME DE TRANSITIONS DE PAGE =====
+// ===================================================
 
+/**
+ * Transition entre deux "pages"
+ * @param {HTMLElement} from   - Élément qui sort
+ * @param {HTMLElement} to     - Élément qui entre
+ * @param {string}      dir    - 'forward' | 'back' | 'fade'
+ */
+function transitionTo(from, to, dir = 'forward') {
+  return new Promise(resolve => {
+    // Classes selon la direction
+    const exitClass  = dir === 'back'  ? 'page-exit-right'  :
+                       dir === 'fade'  ? 'page-fade-out'    : 'page-exit-left';
+    const enterClass = dir === 'back'  ? 'page-enter-left'  :
+                       dir === 'fade'  ? 'page-fade-in'     : 'page-enter-right';
+
+    // Durée de sortie (ms)
+    const exitDuration = dir === 'fade' ? 250 : 280;
+
+    if (from && !from.classList.contains('hidden')) {
+      // Animer la sortie
+      from.classList.add(exitClass);
+      setTimeout(() => {
+        from.classList.remove(exitClass);
+        from.classList.add('hidden');
+        // Animer l'entrée
+        showWithAnim(to, enterClass, resolve);
+      }, exitDuration);
+    } else {
+      // Pas d'élément sortant — juste entrer
+      showWithAnim(to, enterClass, resolve);
+    }
+  });
+}
+
+function showWithAnim(el, animClass, resolve) {
+  el.classList.remove('hidden');
+  el.classList.add(animClass);
+  el.addEventListener('animationend', () => {
+    el.classList.remove(animClass);
+    if (resolve) resolve();
+  }, { once: true });
+}
+
+/**
+ * Animer les cartes d'une grille avec un délai croissant
+ */
+function animateCards(selector, animClass = 'module-card-anim', baseDelay = 60) {
+  const cards = document.querySelectorAll(selector);
+  cards.forEach((card, i) => {
+    card.classList.remove(animClass);
+    card.style.animationDelay = `${i * baseDelay}ms`;
+    // Forcer le reflow
+    void card.offsetWidth;
+    card.classList.add(animClass);
+  });
+}
 const firebaseConfig = {
   apiKey: "AIzaSyByGzXhK9ub9ThcacauTm7ROYP1fBpE1l0",
   authDomain: "mes-notes-app-8618f.firebaseapp.com",
