@@ -3,65 +3,7 @@ import {
   getFirestore, collection, onSnapshot, addDoc,
   deleteDoc, doc, updateDoc, serverTimestamp, query, orderBy
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-// ===================================================
-// ===== SYSTÈME DE TRANSITIONS DE PAGE =====
-// ===================================================
 
-/**
- * Transition entre deux "pages"
- * @param {HTMLElement} from   - Élément qui sort
- * @param {HTMLElement} to     - Élément qui entre
- * @param {string}      dir    - 'forward' | 'back' | 'fade'
- */
-function transitionTo(from, to, dir = 'forward') {
-  return new Promise(resolve => {
-    // Classes selon la direction
-    const exitClass  = dir === 'back'  ? 'page-exit-right'  :
-                       dir === 'fade'  ? 'page-fade-out'    : 'page-exit-left';
-    const enterClass = dir === 'back'  ? 'page-enter-left'  :
-                       dir === 'fade'  ? 'page-fade-in'     : 'page-enter-right';
-
-    // Durée de sortie (ms)
-    const exitDuration = dir === 'fade' ? 250 : 280;
-
-    if (from && !from.classList.contains('hidden')) {
-      // Animer la sortie
-      from.classList.add(exitClass);
-      setTimeout(() => {
-        from.classList.remove(exitClass);
-        from.classList.add('hidden');
-        // Animer l'entrée
-        showWithAnim(to, enterClass, resolve);
-      }, exitDuration);
-    } else {
-      // Pas d'élément sortant — juste entrer
-      showWithAnim(to, enterClass, resolve);
-    }
-  });
-}
-
-function showWithAnim(el, animClass, resolve) {
-  el.classList.remove('hidden');
-  el.classList.add(animClass);
-  el.addEventListener('animationend', () => {
-    el.classList.remove(animClass);
-    if (resolve) resolve();
-  }, { once: true });
-}
-
-/**
- * Animer les cartes d'une grille avec un délai croissant
- */
-function animateCards(selector, animClass = 'module-card-anim', baseDelay = 60) {
-  const cards = document.querySelectorAll(selector);
-  cards.forEach((card, i) => {
-    card.classList.remove(animClass);
-    card.style.animationDelay = `${i * baseDelay}ms`;
-    // Forcer le reflow
-    void card.offsetWidth;
-    card.classList.add(animClass);
-  });
-}
 const firebaseConfig = {
   apiKey: "AIzaSyByGzXhK9ub9ThcacauTm7ROYP1fBpE1l0",
   authDomain: "mes-notes-app-8618f.firebaseapp.com",
@@ -105,6 +47,50 @@ let moduleImgBase64    = null;
 const isMobile = () => window.innerWidth <= 768;
 
 // ===================================================
+// ===== SYSTÈME DE TRANSITIONS =====
+// ===================================================
+
+function transitionTo(from, to, dir = 'forward') {
+  return new Promise(resolve => {
+    const exitClass  = dir === 'back' ? 'page-exit-right' :
+                       dir === 'fade' ? 'page-fade-out'   : 'page-exit-left';
+    const enterClass = dir === 'back' ? 'page-enter-left' :
+                       dir === 'fade' ? 'page-fade-in'    : 'page-enter-right';
+    const exitDuration = dir === 'fade' ? 250 : 280;
+
+    if (from && !from.classList.contains('hidden')) {
+      from.classList.add(exitClass);
+      setTimeout(() => {
+        from.classList.remove(exitClass);
+        from.classList.add('hidden');
+        showWithAnim(to, enterClass, resolve);
+      }, exitDuration);
+    } else {
+      showWithAnim(to, enterClass, resolve);
+    }
+  });
+}
+
+function showWithAnim(el, animClass, resolve) {
+  el.classList.remove('hidden');
+  el.classList.add(animClass);
+  el.addEventListener('animationend', () => {
+    el.classList.remove(animClass);
+    if (resolve) resolve();
+  }, { once: true });
+}
+
+function animateCards(selector, animClass = 'module-card-anim', baseDelay = 60) {
+  const cards = document.querySelectorAll(selector);
+  cards.forEach((card, i) => {
+    card.classList.remove(animClass);
+    card.style.animationDelay = `${i * baseDelay}ms`;
+    void card.offsetWidth;
+    card.classList.add(animClass);
+  });
+}
+
+// ===================================================
 // ===== SIDEBAR MOBILE =====
 // ===================================================
 
@@ -122,44 +108,34 @@ function closeSidebar() {
 
 document.getElementById('sidebar-toggle').addEventListener('click', () => {
   const sidebar = document.getElementById('sidebar');
-  if (sidebar.classList.contains('open')) {
-    closeSidebar();
-  } else {
-    openSidebar();
-  }
+  sidebar.classList.contains('open') ? closeSidebar() : openSidebar();
 });
 
 document.getElementById('sidebar-close').addEventListener('click', closeSidebar);
 document.getElementById('sidebar-overlay').addEventListener('click', closeSidebar);
 
 // ===================================================
-// ===== NAVIGATION MOBILE (barre du bas) =====
+// ===== NAVIGATION MOBILE =====
 // ===================================================
 
 document.getElementById('nav-files').addEventListener('click', () => {
   setMobileNavActive('files');
-  // Afficher sidebar
   openSidebar();
 });
 
 document.getElementById('nav-dashboard').addEventListener('click', () => {
   setMobileNavActive('dashboard');
   closeSidebar();
-  // Activer dashboard
   isDashboard = true;
   document.getElementById('dashboard-btn').className = 'mode-btn dashboard-active';
-  document.getElementById('sidebar').classList.remove('open');
   document.getElementById('main-content').classList.add('hidden');
-  document.getElementById('dashboard-view').classList.remove('hidden');
-  renderDashboard();
+  const dashView = document.getElementById('dashboard-view');
+  transitionTo(null, dashView, 'fade').then(() => renderDashboard());
 });
 
 document.getElementById('nav-mode').addEventListener('click', () => {
-  if (!isEditMode) {
-    document.getElementById('modal-overlay').classList.remove('hidden');
-  } else {
-    setEditMode(false);
-  }
+  if (!isEditMode) document.getElementById('modal-overlay').classList.remove('hidden');
+  else setEditMode(false);
 });
 
 document.getElementById('nav-back').addEventListener('click', () => {
@@ -188,21 +164,22 @@ function goBackToModules() {
   currentModuleId = null;
   selectedFileId  = null;
   closeSidebar();
-  document.getElementById('app-container').classList.add('hidden');
-  document.getElementById('modules-screen').classList.remove('hidden');
   closeEditor();
+
+  const from = document.getElementById('app-container');
+  const to   = document.getElementById('modules-screen');
+
+  transitionTo(from, to, 'back').then(() => {
+    setTimeout(() => animateCards('.module-card:not(.module-card-add)', 'module-card-anim', 70), 50);
+  });
 }
 
 document.getElementById('back-to-modules').addEventListener('click', goBackToModules);
 
-// Bouton retour dans l'éditeur (mobile)
 document.getElementById('editor-back-btn').addEventListener('click', () => {
   closeSidebar();
   closeEditor();
-  // Sur mobile, ouvrir la sidebar
-  if (isMobile()) {
-    setTimeout(() => openSidebar(), 100);
-  }
+  if (isMobile()) setTimeout(() => openSidebar(), 100);
 });
 
 // ===================================================
@@ -276,8 +253,6 @@ function syncEditModeUI() {
   if (uploadHint)  uploadHint.classList.toggle('hidden', !isEditMode);
 
   if (quill) quill.enable(isEditMode);
-
-  // Mettre à jour icône nav mobile
   updateMobileNavMode();
 }
 
@@ -289,10 +264,18 @@ document.getElementById('dashboard-btn').addEventListener('click', () => {
   isDashboard = !isDashboard;
   const btn = document.getElementById('dashboard-btn');
   btn.className = `mode-btn ${isDashboard ? 'dashboard-active' : 'dashboard-inactive'}`;
-  document.getElementById('sidebar').classList.toggle('hidden', isDashboard);
-  document.getElementById('main-content').classList.toggle('hidden', isDashboard);
-  document.getElementById('dashboard-view').classList.toggle('hidden', !isDashboard);
-  if (isDashboard) renderDashboard();
+
+  if (isDashboard) {
+    const from = document.getElementById('main-content');
+    const to   = document.getElementById('dashboard-view');
+    document.getElementById('sidebar').classList.add('hidden');
+    transitionTo(from, to, 'fade').then(() => renderDashboard());
+  } else {
+    const from = document.getElementById('dashboard-view');
+    const to   = document.getElementById('main-content');
+    document.getElementById('sidebar').classList.remove('hidden');
+    transitionTo(from, to, 'fade');
+  }
 });
 
 // ===================================================
@@ -389,7 +372,9 @@ function renderModulesScreen() {
       const name = prompt('Nom du module :');
       if (name?.trim()) {
         const color = FOLDER_COLORS[Math.floor(Math.random() * FOLDER_COLORS.length)];
-        await addDoc(collection(db, 'modules'), { name: name.trim(), color, image: null, createdAt: serverTimestamp() });
+        await addDoc(collection(db, 'modules'), {
+          name: name.trim(), color, image: null, createdAt: serverTimestamp()
+        });
       }
     });
     grid.appendChild(addCard);
@@ -400,17 +385,28 @@ function renderModulesScreen() {
       Aucun module disponible.<br><span style="opacity:0.6;font-size:0.8rem">Passez en mode édition pour en créer.</span>
     </div>`;
   }
+
+  // ✅ Animation des cartes au rendu
+  setTimeout(() => animateCards('.module-card:not(.module-card-add)', 'module-card-anim', 70), 10);
 }
 
+// ===== ENTRER DANS UN MODULE =====
 function enterModule(mod) {
   currentModuleId = mod.id;
-  document.getElementById('modules-screen').classList.add('hidden');
-  document.getElementById('app-container').classList.remove('hidden');
   document.getElementById('current-module-name').textContent = mod.name;
-  syncEditModeUI();
-  renderSidebar();
-  // Sur mobile, ouvrir la sidebar automatiquement
-  if (isMobile()) setTimeout(() => openSidebar(), 200);
+
+  const from = document.getElementById('modules-screen');
+  const to   = document.getElementById('app-container');
+
+  transitionTo(from, to, 'forward').then(() => {
+    syncEditModeUI();
+    renderSidebar();
+    // Animation sidebar
+    const sidebar = document.getElementById('sidebar');
+    sidebar.classList.add('sidebar-animate');
+    setTimeout(() => sidebar.classList.remove('sidebar-animate'), 400);
+    if (isMobile()) setTimeout(() => openSidebar(), 200);
+  });
 }
 
 // ===================================================
@@ -486,6 +482,7 @@ function renderFolder(folder, depth, openByDefault = false) {
   if (isEditMode) {
     const actions = document.createElement('div');
     actions.className = 'folder-actions';
+
     actions.appendChild(makeActionBtn('✏', 'Renommer', async () => {
       const n = prompt('Nouveau nom :', folder.name);
       if (n?.trim()) await updateDoc(doc(db, 'folders', folder.id), { name: n.trim() });
@@ -521,7 +518,8 @@ function renderFolder(folder, depth, openByDefault = false) {
       }
     }));
     actions.appendChild(makeActionBtn('✕', 'Supprimer', async () => {
-      if (confirm(`Supprimer "${folder.name}" ?`)) await deleteDoc(doc(db, 'folders', folder.id));
+      if (confirm(`Supprimer "${folder.name}" ?`))
+        await deleteDoc(doc(db, 'folders', folder.id));
     }));
     header.appendChild(actions);
   }
@@ -574,6 +572,10 @@ function openParentFolderOf(file) {
   openFolderInSidebar(file.folderId);
 }
 
+// ===================================================
+// ===== RENDER FILE =====
+// ===================================================
+
 function renderFile(file, depth) {
   const item = document.createElement('div');
   item.className = `file-item${file.id === selectedFileId ? ' active' : ''}`;
@@ -619,7 +621,6 @@ function renderFile(file, depth) {
   item.addEventListener('click', (e) => {
     if (e.target.closest('.file-actions')) return;
     openFile(file);
-    // Sur mobile : fermer la sidebar après sélection
     if (isMobile()) closeSidebar();
   });
 
@@ -661,14 +662,18 @@ function renderDashboard() {
     card.addEventListener('click', () => {
       isDashboard = false;
       document.getElementById('dashboard-btn').className = 'mode-btn dashboard-inactive';
+      const from = document.getElementById('dashboard-view');
+      const to   = document.getElementById('main-content');
       document.getElementById('sidebar').classList.remove('hidden');
-      document.getElementById('main-content').classList.remove('hidden');
-      document.getElementById('dashboard-view').classList.add('hidden');
+      transitionTo(from, to, 'fade');
       setMobileNavActive('files');
       renderSidebar();
     });
     grid.appendChild(card);
   });
+
+  // ✅ Animation des cartes dashboard
+  setTimeout(() => animateCards('.dashboard-card', 'dashboard-card-anim', 55), 10);
 }
 
 // ===================================================
@@ -688,21 +693,35 @@ function initQuill() {
       ]
     }
   });
+
   quill.on('text-change', () => {
     if (!isEditMode || !selectedFileId) return;
     clearTimeout(saveTimer);
     saveTimer = setTimeout(async () => {
       const content = quill.root.innerHTML;
       const size    = new Blob([content]).size;
-      await updateDoc(doc(db, 'files', selectedFileId), { content, size, updatedAt: serverTimestamp() });
+      await updateDoc(doc(db, 'files', selectedFileId), {
+        content, size, updatedAt: serverTimestamp()
+      });
     }, 800);
   });
 }
 
 function openFile(file) {
   selectedFileId = file.id;
-  document.getElementById('empty-state').classList.add('hidden');
-  document.getElementById('editor-wrapper').classList.remove('hidden');
+  const emptyState    = document.getElementById('empty-state');
+  const editorWrapper = document.getElementById('editor-wrapper');
+
+  // ✅ Transition fade vers l'éditeur
+  if (!editorWrapper.classList.contains('hidden')) {
+    editorWrapper.classList.add('page-fade-in');
+    editorWrapper.addEventListener('animationend', () => {
+      editorWrapper.classList.remove('page-fade-in');
+    }, { once: true });
+  } else {
+    emptyState.classList.add('hidden');
+    showWithAnim(editorWrapper, 'page-fade-in');
+  }
 
   // Sur mobile : masquer dashboard si ouvert
   if (isMobile() && isDashboard) {
@@ -747,8 +766,21 @@ function closeEditor() {
   selectedFileId = null;
   currentImages  = [];
   renderImagePanel();
-  document.getElementById('empty-state').classList.remove('hidden');
-  document.getElementById('editor-wrapper').classList.add('hidden');
+
+  const editorWrapper = document.getElementById('editor-wrapper');
+  const emptyState    = document.getElementById('empty-state');
+
+  // ✅ Transition fade retour empty state
+  if (!editorWrapper.classList.contains('hidden')) {
+    editorWrapper.classList.add('page-fade-out');
+    editorWrapper.addEventListener('animationend', () => {
+      editorWrapper.classList.remove('page-fade-out');
+      editorWrapper.classList.add('hidden');
+      showWithAnim(emptyState, 'page-fade-in');
+    }, { once: true });
+  } else {
+    emptyState.classList.remove('hidden');
+  }
 }
 
 // ===================================================
@@ -760,9 +792,11 @@ function showFileProperties(file) {
   document.getElementById('prop-size').textContent    = formatSize(file.size);
   document.getElementById('prop-created').textContent = formatDate(file.createdAt);
   document.getElementById('prop-updated').textContent = formatDate(file.updatedAt);
-  document.getElementById('prop-tags').textContent    = (file.tags || []).map(t => t.label).join(', ') || 'Aucune';
+  document.getElementById('prop-tags').textContent    =
+    (file.tags || []).map(t => t.label).join(', ') || 'Aucune';
   document.getElementById('props-overlay').classList.remove('hidden');
 }
+
 document.getElementById('props-close').addEventListener('click', () => {
   document.getElementById('props-overlay').classList.add('hidden');
 });
@@ -787,6 +821,7 @@ function openColorPickerGeneric() {
   });
   document.getElementById('color-overlay').classList.remove('hidden');
 }
+
 document.getElementById('color-cancel').addEventListener('click', () => {
   document.getElementById('color-overlay').classList.add('hidden');
 });
@@ -798,6 +833,7 @@ document.getElementById('color-cancel').addEventListener('click', () => {
 function openTagManager(targetId, targetType) {
   currentTagTarget = targetId; currentTagTargetType = targetType;
   selectedTagColor = TAG_COLORS[0];
+
   const picker = document.getElementById('tag-color-picker');
   picker.innerHTML = '';
   TAG_COLORS.forEach(color => {
@@ -811,6 +847,7 @@ function openTagManager(targetId, targetType) {
     });
     picker.appendChild(dot);
   });
+
   renderTagList();
   document.getElementById('tag-input').value = '';
   document.getElementById('tag-overlay').classList.remove('hidden');
@@ -820,6 +857,7 @@ function renderTagList() {
   const target = currentTagTargetType === 'folder'
     ? folders.find(f => f.id === currentTagTarget)
     : files.find(f => f.id === currentTagTarget);
+
   const list = document.getElementById('tag-list');
   list.innerHTML = '';
   (target?.tags || []).forEach((tag, i) => {
@@ -865,7 +903,7 @@ document.getElementById('tag-cancel').addEventListener('click', () => {
 function openModuleImgModal(moduleId, currentImage) {
   moduleImgTargetId = moduleId; moduleImgBase64 = currentImage;
   document.getElementById('module-img-input').value = '';
-  const preview = document.getElementById('module-img-preview');
+  const preview    = document.getElementById('module-img-preview');
   const previewImg = document.getElementById('module-img-preview-img');
   if (currentImage) { previewImg.src = currentImage; preview.style.display = 'block'; }
   else preview.style.display = 'none';
@@ -937,6 +975,7 @@ function renderImagePanel() {
   const list  = document.getElementById('image-list');
   const badge = document.getElementById('image-count-badge');
   if (!list || !badge) return;
+
   list.innerHTML = '';
   badge.textContent = `${currentImages.length} / 5`;
 
@@ -953,6 +992,7 @@ function renderImagePanel() {
         ${isEditMode ? `<button class="img-btn-delete" title="Supprimer">🗑</button>` : ''}
       </div>
     `;
+
     if (isEditMode) {
       item.addEventListener('dragstart', e => { dragSrcIndex = index; item.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; });
       item.addEventListener('dragend', () => { item.classList.remove('dragging'); document.querySelectorAll('.image-item').forEach(el => el.classList.remove('drag-over')); });
@@ -966,9 +1006,12 @@ function renderImagePanel() {
       });
       item.querySelector('.img-btn-delete').addEventListener('click', async e => {
         e.stopPropagation();
-        if (confirm(`Supprimer "${img.name}" ?`)) { currentImages.splice(index, 1); renderImagePanel(); await saveImages(); }
+        if (confirm(`Supprimer "${img.name}" ?`)) {
+          currentImages.splice(index, 1); renderImagePanel(); await saveImages();
+        }
       });
     }
+
     item.querySelector('.img-btn-view').addEventListener('click', e => { e.stopPropagation(); openLightbox(img.base64); });
     item.addEventListener('click', e => { if (e.target.closest('.image-item-overlay')) return; openLightbox(img.base64); });
     list.appendChild(item);
@@ -995,16 +1038,20 @@ function openLightbox(src) {
 }
 
 function updateLightboxZoom() {
-  document.getElementById('lightbox-img').style.transform = `translate(${lightboxTranslateX}px, ${lightboxTranslateY}px) scale(${zoomLevel})`;
+  document.getElementById('lightbox-img').style.transform =
+    `translate(${lightboxTranslateX}px, ${lightboxTranslateY}px) scale(${zoomLevel})`;
   document.getElementById('zoom-level').textContent = `${Math.round(zoomLevel * 100)}%`;
   document.getElementById('lightbox-img-wrapper').classList.toggle('zoomed', zoomLevel > 1);
 }
 
-document.getElementById('zoom-in').addEventListener('click',    () => { zoomLevel = Math.min(zoomLevel + 0.25, 4); updateLightboxZoom(); });
-document.getElementById('zoom-out').addEventListener('click',   () => { zoomLevel = Math.max(zoomLevel - 0.25, 0.25); if (zoomLevel <= 1) { lightboxTranslateX = 0; lightboxTranslateY = 0; } updateLightboxZoom(); });
+document.getElementById('zoom-in').addEventListener('click', () => { zoomLevel = Math.min(zoomLevel + 0.25, 4); updateLightboxZoom(); });
+document.getElementById('zoom-out').addEventListener('click', () => { zoomLevel = Math.max(zoomLevel - 0.25, 0.25); if (zoomLevel <= 1) { lightboxTranslateX = 0; lightboxTranslateY = 0; } updateLightboxZoom(); });
 document.getElementById('zoom-reset').addEventListener('click', () => { zoomLevel = 1; lightboxTranslateX = 0; lightboxTranslateY = 0; updateLightboxZoom(); });
 document.getElementById('lightbox-close').addEventListener('click', () => document.getElementById('lightbox-overlay').classList.add('hidden'));
-document.getElementById('lightbox-overlay').addEventListener('click', e => { if (e.target === document.getElementById('lightbox-overlay')) document.getElementById('lightbox-overlay').classList.add('hidden'); });
+document.getElementById('lightbox-overlay').addEventListener('click', e => {
+  if (e.target === document.getElementById('lightbox-overlay'))
+    document.getElementById('lightbox-overlay').classList.add('hidden');
+});
 document.getElementById('lightbox-img-wrapper').addEventListener('wheel', e => {
   e.preventDefault();
   zoomLevel = Math.min(Math.max(zoomLevel + (e.deltaY > 0 ? -0.15 : 0.15), 0.25), 4);
@@ -1013,8 +1060,18 @@ document.getElementById('lightbox-img-wrapper').addEventListener('wheel', e => {
 }, { passive: false });
 
 const lbWrapper = document.getElementById('lightbox-img-wrapper');
-lbWrapper.addEventListener('mousedown', e => { if (zoomLevel <= 1) return; isDraggingLightbox = true; lightboxStartX = e.clientX - lightboxTranslateX; lightboxStartY = e.clientY - lightboxTranslateY; });
-window.addEventListener('mousemove', e => { if (!isDraggingLightbox) return; lightboxTranslateX = e.clientX - lightboxStartX; lightboxTranslateY = e.clientY - lightboxStartY; updateLightboxZoom(); });
+lbWrapper.addEventListener('mousedown', e => {
+  if (zoomLevel <= 1) return;
+  isDraggingLightbox = true;
+  lightboxStartX = e.clientX - lightboxTranslateX;
+  lightboxStartY = e.clientY - lightboxTranslateY;
+});
+window.addEventListener('mousemove', e => {
+  if (!isDraggingLightbox) return;
+  lightboxTranslateX = e.clientX - lightboxStartX;
+  lightboxTranslateY = e.clientY - lightboxStartY;
+  updateLightboxZoom();
+});
 window.addEventListener('mouseup', () => { isDraggingLightbox = false; });
 
 // ===================================================
@@ -1022,9 +1079,22 @@ window.addEventListener('mouseup', () => { isDraggingLightbox = false; });
 // ===================================================
 
 let rgpdCallback = null;
-function showRgpdModal(callback) { rgpdCallback = callback; document.getElementById('rgpd-overlay').classList.remove('hidden'); }
-document.getElementById('rgpd-cancel').addEventListener('click', () => { document.getElementById('rgpd-overlay').classList.add('hidden'); rgpdCallback = null; });
-document.getElementById('rgpd-confirm').addEventListener('click', async () => { document.getElementById('rgpd-overlay').classList.add('hidden'); if (rgpdCallback) await rgpdCallback(); rgpdCallback = null; });
+
+function showRgpdModal(callback) {
+  rgpdCallback = callback;
+  document.getElementById('rgpd-overlay').classList.remove('hidden');
+}
+
+document.getElementById('rgpd-cancel').addEventListener('click', () => {
+  document.getElementById('rgpd-overlay').classList.add('hidden');
+  rgpdCallback = null;
+});
+
+document.getElementById('rgpd-confirm').addEventListener('click', async () => {
+  document.getElementById('rgpd-overlay').classList.add('hidden');
+  if (rgpdCallback) await rgpdCallback();
+  rgpdCallback = null;
+});
 
 // ===================================================
 // ===== UTILITAIRES =====
