@@ -602,7 +602,6 @@ function renderFile(file, depth) {
 
   const icon = document.createElement('span');
   icon.className = 'file-icon';
-  icon.textContent = '📄';
 
   const name = document.createElement('span');
   name.className = 'file-name';
@@ -683,7 +682,6 @@ function renderDashboard() {
       <div class="card-files-list">
         ${folderFiles.map(f => `
           <div class="card-file-item" data-file-id="${f.id}">
-            <span class="card-file-icon">📄</span>
             <span class="card-file-name">${f.name}</span>
           </div>
         `).join('')}
