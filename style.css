@@ -708,3 +708,118 @@ html, body {
   to   { opacity: 1; transform: scale(1); }
 }
 .lightbox-box { animation: lightboxIn 0.3s cubic-bezier(0.34,1.56,0.64,1) forwards; }
+/* ===== BOUTON NOUVEAU FICHIER — SIDEBAR (sous les fichiers) ===== */
+.sidebar-add-file-row {
+  padding-top: 4px;
+  padding-bottom: 6px;
+}
+
+.sidebar-add-file-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: none;
+  border: 1px dashed var(--glass-border);
+  color: var(--text-muted);
+  font-size: 0.76rem;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.2s;
+  width: 100%;
+  text-align: left;
+}
+
+.sidebar-add-file-btn span {
+  font-size: 0.85rem;
+  color: var(--accent);
+}
+
+.sidebar-add-file-btn:hover {
+  background: var(--glass-hover);
+  border-color: var(--accent);
+  color: var(--text);
+}
+
+/* ===== DASHBOARD CARD — Restructurée ===== */
+.card-header-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.card-header-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.card-header-row .card-icon {
+  font-size: 1.4rem;
+  margin-bottom: 0;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+/* ===== LISTE FICHIERS DANS LA CARTE DASHBOARD ===== */
+.card-files-list {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  border-top: 1px solid var(--glass-border);
+  padding-top: 8px;
+}
+
+.card-file-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.18s;
+  font-size: 0.78rem;
+  color: var(--text-soft);
+}
+
+.card-file-item:hover {
+  background: var(--glass-hover);
+  color: var(--text);
+  transform: translateX(3px);
+}
+
+.card-file-icon { font-size: 0.72rem; flex-shrink: 0; }
+.card-file-name {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ===== BOUTON NOUVEAU FICHIER — DASHBOARD CARD ===== */
+.card-add-file-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  width: 100%;
+  margin-top: 10px;
+  padding: 6px 10px;
+  background: none;
+  border: 1px dashed var(--glass-border);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font-size: 0.76rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.card-add-file-btn:hover {
+  background: var(--glass-hover);
+  border-color: var(--accent);
+  color: var(--accent);
+}
