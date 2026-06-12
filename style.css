@@ -585,3 +585,126 @@ html, body {
   .app-title-anim { font-size: 1.3rem; }
   .mode-btn { padding: 6px 12px; font-size: 0.78rem; }
 }
+/* ===================================================
+   ===== TRANSITIONS DE PAGE SMOOTH =====
+   =================================================== */
+
+/* Classe de base pour tous les écrans transitionnables */
+.page {
+  animation: none;
+  transition: opacity 0.35s ease, transform 0.35s cubic-bezier(0.4,0,0.2,1);
+}
+
+/* ── Entrée depuis la droite (aller) ── */
+@keyframes pageEnterRight {
+  from { opacity: 0; transform: translateX(32px) scale(0.98); }
+  to   { opacity: 1; transform: translateX(0)    scale(1);    }
+}
+
+/* ── Entrée depuis la gauche (retour) ── */
+@keyframes pageEnterLeft {
+  from { opacity: 0; transform: translateX(-32px) scale(0.98); }
+  to   { opacity: 1; transform: translateX(0)     scale(1);    }
+}
+
+/* ── Sortie vers la gauche (aller) ── */
+@keyframes pageExitLeft {
+  from { opacity: 1; transform: translateX(0)     scale(1);    }
+  to   { opacity: 0; transform: translateX(-32px) scale(0.98); }
+}
+
+/* ── Sortie vers la droite (retour) ── */
+@keyframes pageExitRight {
+  from { opacity: 1; transform: translateX(0)    scale(1);    }
+  to   { opacity: 0; transform: translateX(32px) scale(0.98); }
+}
+
+/* ── Fondu simple (dashboard, éditeur) ── */
+@keyframes pageFadeIn {
+  from { opacity: 0; transform: translateY(10px) scale(0.99); }
+  to   { opacity: 1; transform: translateY(0)    scale(1);    }
+}
+
+@keyframes pageFadeOut {
+  from { opacity: 1; transform: translateY(0)    scale(1);    }
+  to   { opacity: 0; transform: translateY(-8px) scale(0.99); }
+}
+
+/* Classes appliquées dynamiquement par JS */
+.page-enter-right { animation: pageEnterRight 0.35s cubic-bezier(0.4,0,0.2,1) forwards; }
+.page-enter-left  { animation: pageEnterLeft  0.35s cubic-bezier(0.4,0,0.2,1) forwards; }
+.page-exit-left   { animation: pageExitLeft   0.28s cubic-bezier(0.4,0,0.2,1) forwards; }
+.page-exit-right  { animation: pageExitRight  0.28s cubic-bezier(0.4,0,0.2,1) forwards; }
+.page-fade-in     { animation: pageFadeIn     0.32s cubic-bezier(0.4,0,0.2,1) forwards; }
+.page-fade-out    { animation: pageFadeOut    0.25s cubic-bezier(0.4,0,0.2,1) forwards; }
+
+/* ── Transitions des modules ── */
+.modules-screen  { position: relative; }
+.app-container   { position: relative; }
+.dashboard-view  { position: relative; }
+.editor-wrapper  { position: relative; }
+
+/* ── Sidebar slide ── */
+@keyframes sidebarSlideIn {
+  from { opacity: 0; transform: translateX(-16px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.sidebar-animate { animation: sidebarSlideIn 0.3s cubic-bezier(0.4,0,0.2,1) forwards; }
+
+/* ── Cards modules au chargement ── */
+@keyframes cardPop {
+  from { opacity: 0; transform: translateY(20px) scale(0.95); }
+  to   { opacity: 1; transform: translateY(0)    scale(1);    }
+}
+.module-card-anim {
+  animation: cardPop 0.4s cubic-bezier(0.34,1.56,0.64,1) forwards;
+  opacity: 0;
+}
+
+/* ── Dashboard cards ── */
+.dashboard-card-anim {
+  animation: cardPop 0.35s cubic-bezier(0.34,1.56,0.64,1) forwards;
+  opacity: 0;
+}
+
+/* ── Boutons : feedback tactile ── */
+.mode-btn, .back-btn, .add-folder-btn-dashboard,
+.mobile-nav-btn, .btn-confirm, .btn-cancel {
+  transition: all 0.2s cubic-bezier(0.4,0,0.2,1);
+}
+
+.mode-btn:active, .back-btn:active,
+.add-folder-btn-dashboard:active {
+  transform: scale(0.94);
+}
+
+.btn-confirm:active { transform: scale(0.95) translateY(0) !important; }
+.btn-cancel:active  { transform: scale(0.95); }
+
+/* ── Feedback fichier sélectionné ── */
+.file-item {
+  transition: background 0.18s ease, transform 0.15s ease,
+              border-color 0.15s ease, opacity 0.15s ease;
+}
+.file-item:active { transform: scale(0.97); }
+
+/* ── Folder toggle smooth ── */
+.folder-children {
+  overflow: hidden;
+  transition: max-height 0.3s cubic-bezier(0.4,0,0.2,1),
+              opacity 0.25s ease;
+}
+
+/* ── Overlay sidebar mobile ── */
+.sidebar-overlay {
+  transition: opacity 0.3s ease;
+  opacity: 0;
+}
+.sidebar-overlay.active { opacity: 1; }
+
+/* ── Lightbox smooth ── */
+@keyframes lightboxIn {
+  from { opacity: 0; transform: scale(0.92); }
+  to   { opacity: 1; transform: scale(1); }
+}
+.lightbox-box { animation: lightboxIn 0.3s cubic-bezier(0.34,1.56,0.64,1) forwards; }
